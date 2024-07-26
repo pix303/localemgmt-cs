@@ -1,0 +1,9 @@
+POST http://{{host}}:{{port}}/auth/register/
+content-type: application/json
+
+{
+    "firstname": "paolo",
+    "lastname": "paolo",
+    "email": "paol@ooo.it",
+    "password": "to23xx"
+}

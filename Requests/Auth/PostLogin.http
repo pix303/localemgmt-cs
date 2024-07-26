@@ -1,0 +1,7 @@
+POST http://{{host}}:{{port}}/auth/login/
+content-type: application/json
+
+{
+    "email": "paol@ooo.it",
+    "password": "to23xx"
+}
