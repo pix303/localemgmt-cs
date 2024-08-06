@@ -1,4 +1,5 @@
-﻿using Localemgmt.Application.Service.Authentication;
+﻿using Localemgmt.Application.Services.Users;
+using Localemgmt.Infrastructure.Repositories.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Localemgmt.Infrastructure;
@@ -7,7 +8,7 @@ public static class DependencyInjection
 {
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services)
 	{
-		services.AddScoped<IAuthenticationService, AuthenticationService>();
+		services.AddSingleton<IUsersRepository, UsersRepository>();
 		return services;
 	}
 }

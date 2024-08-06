@@ -1,0 +1,22 @@
+using Localemgmt.Application.Services.Users;
+using Localemgmt.Domain;
+
+namespace Localemgmt.Infrastructure.Repositories.InMemory;
+
+public class UsersRepository : IUsersRepository
+{
+    private List<UserInfo> _users = new List<UserInfo>();
+
+    public bool AddUserInfo(User user)
+    {
+        _users.Add(new(Guid.NewGuid(), user));
+        return true;
+    }
+
+    public UserInfo? GetUserInfoByEmail(string email)
+    {
+        Console.WriteLine(_users.Count());
+        return _users.FirstOrDefault(u => u.User.Email == email);
+    }
+}
+

@@ -1,9 +1,9 @@
-POST http://{{host}}:{{port}}/auth/register/
+POST http://{{host}}:{{port}}/user/register/
 content-type: application/json
 
 {
-    "firstname": "paolo",
-    "lastname": "paolo",
-    "email": "paol@ooo.it",
-    "password": "to23xx"
+    "firstname": "paola",
+    "lastname": "paolaaaa",
+    "email": "paol@ooaaaa.it",
+    "role": 0
 }

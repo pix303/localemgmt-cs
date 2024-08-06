@@ -1,4 +1,4 @@
-using Localemgmt.Application.Service.Authentication;
+using Localemgmt.Application.Services.Users;
 using Localemgmt.Application.Services.Messages;
 using Localemgmt.Application.src.Services.Messages;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +9,7 @@ public static class DependecyInjection
 {
 	public static IServiceCollection AddApplication(this IServiceCollection services)
 	{
-		services.AddScoped<IAuthenticationService, AuthenticationService>();
+		services.AddScoped<IUsersService, UsersService>();
 		services.AddScoped<IGenericMessageService, GenericMessageService>();
 		return services;
 	}
