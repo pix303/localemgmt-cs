@@ -1,9 +1,0 @@
-POST http://{{host}}:{{port}}/user/register/
-content-type: application/json
-
-{
-    "firstname": "paola",
-    "lastname": "paolaaaa",
-    "email": "paol@ooaaaa.it",
-    "role": 0
-}
