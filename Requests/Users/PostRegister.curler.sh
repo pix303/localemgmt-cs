@@ -5,7 +5,7 @@ json_data=$(
 {
     "firstname": "paola",
     "lastname": "paolaaaa",
-    "email": "ciaonemio@ciao.it",
+    "email": "paolo@ciao.it",
     "role": 0
 }
 EOF
@@ -13,4 +13,4 @@ EOF
 
 curl POST http://localhost:5028/user/register/ \
   --header "Content-Type: application/json" \
-  --data "$json_data"
+  --data "$json_data"  > post_result.json

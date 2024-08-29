@@ -9,10 +9,13 @@ namespace Localemgmt.Api.Controllers;
 [Route("user")]
 public class UsersController : ControllerBase
 {
-    IUsersService _service;
-    public UsersController(IUsersService service)
+    IUsersCommandService _commandService;
+    IUsersQueryService _queryService;
+
+    public UsersController(IUsersCommandService commandService, IUsersQueryService queryService)
     {
-        _service = service;
+        _commandService = commandService;
+        _queryService = queryService;
     }
 
 
@@ -20,7 +23,7 @@ public class UsersController : ControllerBase
     [Route("register")]
     public IActionResult Register(UserRegistrationRequest request)
     {
-        ErrorOr<bool> serviceResult = _service.RegisterUser(new(request.Firstname, request.Lastname, request.Email, request.Role));
+        ErrorOr<bool> serviceResult = _commandService.RegisterUser(new(request.Firstname, request.Lastname, request.Email, request.Role));
         return serviceResult.Match(
           value => Ok(value),
           exp => Problem(exp.First().Description)
@@ -32,7 +35,7 @@ public class UsersController : ControllerBase
     [Route("info/{email}")]
     public ActionResult<UserInfo> GetUserInfo([FromRoute] string email)
     {
-        var serviceResult = _service.GetUserInfo(email);
+        var serviceResult = _queryService.GetUserInfo(email);
         return serviceResult.Match<ActionResult<UserInfo>>(
           value => Ok(value),
           exp => Problem(exp.First().Description)

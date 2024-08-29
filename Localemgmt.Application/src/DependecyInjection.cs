@@ -9,7 +9,8 @@ public static class DependecyInjection
 {
 	public static IServiceCollection AddApplication(this IServiceCollection services)
 	{
-		services.AddScoped<IUsersService, UsersService>();
+		services.AddScoped<IUsersCommandService, UsersCommandService>();
+		services.AddScoped<IUsersQueryService, UsersQueryService>();
 		services.AddScoped<IGenericMessageService, GenericMessageService>();
 		return services;
 	}
