@@ -1,3 +1,4 @@
+// using Localemgmt.Api.Middleware;
 using Localemgmt.Application;
 using Localemgmt.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,23 +18,23 @@ builder.Services.AddInfrastructure();
 
 builder.Services.AddAuthentication(opts =>
 {
-    opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+  opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+  opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+  opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 
 }).AddJwtBearer(opts =>
 {
-    var skey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!));
-    opts.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
-        IssuerSigningKey = skey,
-        ValidateIssuerSigningKey = true,
-        ValidateAudience = true,
-        ValidateIssuer = true,
-        ValidateLifetime = true,
-    };
+  var skey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!));
+  opts.TokenValidationParameters = new TokenValidationParameters
+  {
+    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+    ValidAudience = builder.Configuration["JwtSettings:Audience"],
+    IssuerSigningKey = skey,
+    ValidateIssuerSigningKey = true,
+    ValidateAudience = true,
+    ValidateIssuer = true,
+    ValidateLifetime = true,
+  };
 
 });
 
@@ -44,13 +45,14 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+
+// app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseExceptionHandler("/error");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

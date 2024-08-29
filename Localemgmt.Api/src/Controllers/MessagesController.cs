@@ -10,17 +10,18 @@ namespace Localemgmt.Api.src.Controllers;
 [Route("api/messages")]
 public class MessagesController : ControllerBase
 {
-    private IGenericMessageService _service;
-    public MessagesController(IGenericMessageService service)
-    {
-        _service = service;
-    }
+  private IGenericMessageService _service;
+  public MessagesController(IGenericMessageService service)
+  {
+    _service = service;
+  }
 
 
-    [HttpGet]
-    [Route("test")]
-    public ActionResult<GenericMessage> GetTestMessage()
-    {
-        return Ok(_service.GetGenericMessage());
-    }
+  [HttpGet]
+  [Route("test")]
+  public ActionResult<GenericMessage> GetTestMessage()
+  {
+    return Problem();
+    // return Ok(_service.GetGenericMessage());
+  }
 }

@@ -1,4 +1,5 @@
 ﻿using Localemgmt.Domain;
+using ErrorOr;
 
 namespace Localemgmt.Application.Services.Users;
 
@@ -11,7 +12,7 @@ public record UserInfo(
 
 public interface IUsersService
 {
-  bool RegisterUser(User user);
-  UserInfo? GetUserInfo(string email);
+  ErrorOr<bool> RegisterUser(User user);
+  ErrorOr<UserInfo> GetUserInfo(string email);
 }
 

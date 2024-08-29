@@ -9,13 +9,17 @@ public class UsersRepository : IUsersRepository
 
     public bool AddUserInfo(User user)
     {
+        var existingUser = GetUserInfoByEmail(user.Email);
+        if (existingUser is not null)
+        {
+            return false;
+        }
         _users.Add(new(Guid.NewGuid(), user));
         return true;
     }
 
     public UserInfo? GetUserInfoByEmail(string email)
     {
-        Console.WriteLine(_users.Count());
         return _users.FirstOrDefault(u => u.User.Email == email);
     }
 }
