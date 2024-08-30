@@ -13,4 +13,4 @@ EOF
 
 curl POST http://localhost:5028/user/register/ \
   --header "Content-Type: application/json" \
-  --data "$json_data"  > post_result.json
+  --data "$json_data"  | jq .

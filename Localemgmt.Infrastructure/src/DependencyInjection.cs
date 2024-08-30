@@ -1,4 +1,4 @@
-﻿using Localemgmt.Application.Services.Users;
+﻿using Localemgmt.Application.Users.Commons;
 using Localemgmt.Infrastructure.Repositories.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 

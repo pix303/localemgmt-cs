@@ -1,7 +1,10 @@
-using Localemgmt.Application.Services.Users;
-using Localemgmt.Contracts.Users;
 using Microsoft.AspNetCore.Mvc;
 using ErrorOr;
+using MediatR;
+using Localemgmt.Application.Users.Commands.Register;
+using Localemgmt.Application.Users.Queries.Login;
+using Localemgmt.Application.Users.Commons;
+using Localemgmt.Contracts.Users;
 
 namespace Localemgmt.Api.Controllers;
 
@@ -9,36 +12,38 @@ namespace Localemgmt.Api.Controllers;
 [Route("user")]
 public class UsersController : ControllerBase
 {
-    IUsersCommandService _commandService;
-    IUsersQueryService _queryService;
-
-    public UsersController(IUsersCommandService commandService, IUsersQueryService queryService)
-    {
-        _commandService = commandService;
-        _queryService = queryService;
-    }
+	ISender _mediator;
 
 
-    [HttpPost]
-    [Route("register")]
-    public IActionResult Register(UserRegistrationRequest request)
-    {
-        ErrorOr<bool> serviceResult = _commandService.RegisterUser(new(request.Firstname, request.Lastname, request.Email, request.Role));
-        return serviceResult.Match(
-          value => Ok(value),
-          exp => Problem(exp.First().Description)
-        );
-    }
+	public UsersController(ISender mediator)
+	{
+		_mediator = mediator;
+	}
 
 
-    [HttpGet]
-    [Route("info/{email}")]
-    public ActionResult<UserInfo> GetUserInfo([FromRoute] string email)
-    {
-        var serviceResult = _queryService.GetUserInfo(email);
-        return serviceResult.Match<ActionResult<UserInfo>>(
-          value => Ok(value),
-          exp => Problem(exp.First().Description)
-        );
-    }
+	[HttpPost]
+	[Route("register")]
+	public async Task<IActionResult> Register(UserRegistrationRequest request)
+	{
+		var command = new UserRegistrationCommand(request.Firstname, request.Lastname, request.Email, request.Role);
+		ErrorOr<bool> serviceResult = await _mediator.Send(command);
+		return serviceResult.Match(
+		  value => Ok(value),
+		  exp => Problem(exp.First().Description)
+		);
+	}
+
+
+	[HttpGet]
+	[Route("info/{email}")]
+	public async Task<ActionResult<UserInfo>> GetUserInfo([FromRoute] string email)
+	{
+		var query = new UserInfoQuery(email);
+
+		var serviceResult = await _mediator.Send(query);
+		return serviceResult.Match<ActionResult<UserInfo>>(
+		  value => Ok(value),
+		  exp => Problem(exp.First().Description)
+		);
+	}
 }

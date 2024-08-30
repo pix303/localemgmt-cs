@@ -1,6 +1,6 @@
 using Localemgmt.Domain;
 
-namespace Localemgmt.Application.Services.Users
+namespace Localemgmt.Application.Users.Commons
 {
     public interface IUsersRepository
     {
