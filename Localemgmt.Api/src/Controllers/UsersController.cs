@@ -42,6 +42,10 @@ public class UsersController : ControllerBase
 	{
 		var query = new UserInfoQuery(email);
 
+		TypeAdapterConfig<UserInfo, UserInfoResponse>.NewConfig()
+		.Map(d => d.Id, s => s.Id)
+		.Map(d => d, s => s.User);
+
 		var serviceResult = await _mediator.Send(query);
 		return serviceResult.Match<ActionResult<UserInfo>>(
 		  value => Ok(value.Adapt<UserInfoResponse>()),

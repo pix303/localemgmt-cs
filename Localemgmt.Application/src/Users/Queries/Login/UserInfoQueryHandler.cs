@@ -17,7 +17,10 @@ public class UserInfoQueryHandler : IRequestHandler<UserInfoQuery, ErrorOr<UserI
 
 	public async Task<ErrorOr<UserInfo>> Handle(UserInfoQuery request, CancellationToken token)
 	{
+		await Task.CompletedTask;
+
 		var existingUser = _repository.GetUserInfoByEmail(request.Email);
+		Console.WriteLine(existingUser);
 		if (existingUser is not null)
 		{
 			return existingUser;
