@@ -5,6 +5,8 @@ using Localemgmt.Application.Users.Commands.Register;
 using Localemgmt.Application.Users.Queries.Login;
 using Localemgmt.Application.Users.Commons;
 using Localemgmt.Contracts.Users;
+using Mapster;
+
 
 namespace Localemgmt.Api.Controllers;
 
@@ -25,7 +27,7 @@ public class UsersController : ControllerBase
 	[Route("register")]
 	public async Task<IActionResult> Register(UserRegistrationRequest request)
 	{
-		var command = new UserRegistrationCommand(request.Firstname, request.Lastname, request.Email, request.Role);
+		var command = request.Adapt<UserRegistrationCommand>();
 		ErrorOr<bool> serviceResult = await _mediator.Send(command);
 		return serviceResult.Match(
 		  value => Ok(value),
@@ -42,7 +44,7 @@ public class UsersController : ControllerBase
 
 		var serviceResult = await _mediator.Send(query);
 		return serviceResult.Match<ActionResult<UserInfo>>(
-		  value => Ok(value),
+		  value => Ok(value.Adapt<UserInfoResponse>()),
 		  exp => Problem(exp.First().Description)
 		);
 	}

@@ -1,4 +1,3 @@
-using Localemgmt.Application.Users;
 using Localemgmt.Application.Users.Commons;
 using Localemgmt.Domain;
 

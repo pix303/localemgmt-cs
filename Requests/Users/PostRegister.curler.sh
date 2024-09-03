@@ -3,8 +3,8 @@
 json_data=$(
   cat <<EOF
 {
-    "firstname": "paola",
-    "lastname": "paolaaaa",
+    "firstname": "paolo",
+    "lastname": "di giorgio",
     "email": "paolo@ciao.it",
     "role": 0
 }
