@@ -25,12 +25,12 @@ public class UsersController : ControllerBase
 
 	[HttpPost]
 	[Route("register")]
-	public async Task<IActionResult> Register(UserRegistrationRequest request)
+	public async Task<ActionResult<UserRegistrationResponse>> Register(UserRegistrationRequest request)
 	{
 		var command = request.Adapt<UserRegistrationCommand>();
 		ErrorOr<bool> serviceResult = await _mediator.Send(command);
 		return serviceResult.Match(
-		  value => Ok(value),
+		  value => Ok(new UserRegistrationResponse(value)),
 		  exp => Problem(exp.First().Description)
 		);
 	}
@@ -42,14 +42,19 @@ public class UsersController : ControllerBase
 	{
 		var query = new UserInfoQuery(email);
 
-		TypeAdapterConfig<UserInfo, UserInfoResponse>.NewConfig()
-		.Map(d => d.Id, s => s.Id)
-		.Map(d => d, s => s.User);
-
 		var serviceResult = await _mediator.Send(query);
 		return serviceResult.Match<ActionResult<UserInfo>>(
 		  value => Ok(value.Adapt<UserInfoResponse>()),
-		  exp => Problem(exp.First().Description)
+		  exp =>
+		  {
+			  var e = exp.First();
+			  if (e.Code == Localemgmt.Domain.Errors.Users.UserNotFound.Code)
+			  {
+				  return Problem(e.Description, null, StatusCodes.Status404NotFound);
+			  }
+
+			  return Problem(e.Description);
+		  }
 		);
 	}
 }

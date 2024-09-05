@@ -20,7 +20,6 @@ public class UserInfoQueryHandler : IRequestHandler<UserInfoQuery, ErrorOr<UserI
 		await Task.CompletedTask;
 
 		var existingUser = _repository.GetUserInfoByEmail(request.Email);
-		Console.WriteLine(existingUser);
 		if (existingUser is not null)
 		{
 			return existingUser;

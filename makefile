@@ -1,2 +1,2 @@
-run-api:
+run:
 	dotnet run --project Localemgmt.Api
