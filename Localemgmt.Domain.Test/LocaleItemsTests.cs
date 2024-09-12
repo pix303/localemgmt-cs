@@ -4,7 +4,7 @@ using Localemgmt.Domain.LocaleItems.Events;
 
 namespace Localemgmt.Domain.Test;
 
-public class TranslationItemsUnitTest
+public class LocaleItemsTest
 {
 	[Fact]
 	public void TranslationItemsProjections_should_update()
@@ -49,13 +49,20 @@ public class TranslationItemsUnitTest
 		TranslationItemUpdateEvent tiUpdateEvent = new("it", "quest è un test modificato", user);
 		TranslationItemUpdateEvent tiUpdateEvent2 = new("it", lastContent, user);
 
+		TranslationItemCreationEvent tiCreationEventB = new("fr", "c'est un test", user);
+		TranslationItemUpdateEvent tiUpdateEventB = new("fr", "c'est un test modifié", user);
+		TranslationItemUpdateEvent tiUpdateEvent2B = new("fr", lastContent, user);
+
 		IList<EventBase> events = [
 			creationEvent,
 			updateEvent,
 			updateEvent2,
 			tiCreationEvent,
 			tiUpdateEvent,
-			tiUpdateEvent2
+			tiUpdateEvent2,
+			tiCreationEventB,
+			tiUpdateEventB,
+			tiUpdateEvent2B
 		];
 
 		LocaleItem item = new LocaleItem();
@@ -66,5 +73,8 @@ public class TranslationItemsUnitTest
 		Assert.NotNull(item.Id);
 		Assert.True(item.UpdatedAt > item.CreatedAt);
 		Assert.True(item.UpdatedBy == item.CreatedBy);
+		Assert.True(item.Translations.Count == 2);
+		Assert.True(item.Translations[0].Lang == "it");
+		Assert.True(item.Translations[1].Lang == "fr");
 	}
 }
