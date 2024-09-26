@@ -14,7 +14,7 @@ public abstract class AbstractLocaleItem
 	public string UpdatedBy { get; set; } = null!;
 
 
-	protected void Create(LocalePersistenceEvent @event)
+	protected void Create(BaseLocalePersistenceEvent @event)
 	{
 		Id = Guid.NewGuid();
 		CreatedAt = DateTime.UtcNow;
@@ -24,7 +24,7 @@ public abstract class AbstractLocaleItem
 		Lang = @event.Lang;
 	}
 
-	protected void Update(LocalePersistenceEvent @event)
+	protected void Update(BaseLocalePersistenceEvent @event)
 	{
 		UpdatedAt = DateTime.UtcNow;
 		UpdatedBy = @event.UserId;

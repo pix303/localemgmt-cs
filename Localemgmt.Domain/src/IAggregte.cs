@@ -1,7 +1,9 @@
+using EventSourcingStore;
+
 namespace Localemgmt.Domain;
 
 public interface IAggregate
 {
-	void Apply(EventBase @event);
-	void Reduce(IList<EventBase> @events);
+	void Apply(StoreEvent @event);
+	void Reduce(IList<StoreEvent> @events);
 }

@@ -1,2 +1,2 @@
 run:
-	dotnet run --project Localemgmt.Api
+	clear && dotnet run --project Localemgmt.Api

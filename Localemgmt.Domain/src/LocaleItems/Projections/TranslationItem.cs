@@ -1,3 +1,4 @@
+using EventSourcingStore;
 using Localemgmt.Domain.LocaleItems.Events;
 
 namespace Localemgmt.Domain.LocaleItems.Projections;
@@ -33,7 +34,7 @@ public class TranslationItem
 		Lang = @event.Lang;
 	}
 
-	public void Apply(EventBase @event)
+	public void Apply(StoreEvent @event)
 	{
 		switch (@event)
 		{
@@ -49,7 +50,7 @@ public class TranslationItem
 		}
 	}
 
-	public void Reduce(IList<EventBase> @events)
+	public void Reduce(IList<StoreEvent> @events)
 	{
 		foreach (var e in @events)
 		{

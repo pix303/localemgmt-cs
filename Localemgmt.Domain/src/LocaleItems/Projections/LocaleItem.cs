@@ -1,3 +1,4 @@
+using EventSourcingStore;
 using Localemgmt.Domain.LocaleItems.Events;
 
 
@@ -13,7 +14,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate
 
 	private void Apply(LocaleItemCreationEvent @event)
 	{
-		LocalePersistenceEvent e = new(@event.Lang, @event.Content, @event.UserId);
+		BaseLocalePersistenceEvent e = new(@event.Lang, @event.Content, @event.UserId, @event.AggregateId);
 		base.Create(e);
 		Context = @event.Context;
 		IsLangReference = true;
@@ -21,7 +22,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate
 
 	private void Apply(LocaleItemUpdateEvent @event)
 	{
-		LocalePersistenceEvent e = new(@event.Lang, @event.Content, @event.UserId);
+		BaseLocalePersistenceEvent e = new(@event.Lang, @event.Content, @event.UserId, @event.AggregateId);
 		base.Update(e);
 		Context = @event.Context;
 	}
@@ -42,7 +43,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate
 	}
 
 
-	public void Apply(EventBase @event)
+	public void Apply(StoreEvent @event)
 	{
 		switch (@event)
 		{
@@ -66,7 +67,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate
 	}
 
 
-	public void Reduce(IList<EventBase> @events)
+	public void Reduce(IList<StoreEvent> @events)
 	{
 		foreach (var e in @events)
 		{

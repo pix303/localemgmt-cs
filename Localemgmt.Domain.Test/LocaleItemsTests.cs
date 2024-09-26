@@ -1,5 +1,6 @@
 using Localemgmt.Domain.LocaleItems.Projections;
 using Localemgmt.Domain.LocaleItems.Events;
+using EventSourcingStore;
 
 
 namespace Localemgmt.Domain.Test;
@@ -16,7 +17,7 @@ public class LocaleItemsTest
 		TranslationItemUpdateEvent updateEvent = new(lang, "this is an edited test", user);
 		TranslationItemUpdateEvent updateEvent2 = new(lang, lastContent, user);
 
-		IList<EventBase> events = [
+		IList<StoreEvent> events = [
 			creationEvent,
 			updateEvent,
 			updateEvent2
@@ -42,8 +43,8 @@ public class LocaleItemsTest
 		var lang = "en";
 
 		LocaleItemCreationEvent creationEvent = new(lang, "this is a test", user, "Default");
-		LocaleItemUpdateEvent updateEvent = new(lang, "this is an edited test", user, "Default");
-		LocaleItemUpdateEvent updateEvent2 = new(lang, lastContent, user, "Default");
+		LocaleItemUpdateEvent updateEvent = new(lang, "this is an edited test", user, "Default", creationEvent.AggregateId);
+		LocaleItemUpdateEvent updateEvent2 = new(lang, lastContent, user, "Default", creationEvent.AggregateId);
 
 		TranslationItemCreationEvent tiCreationEvent = new("it", "questo è un test", user);
 		TranslationItemUpdateEvent tiUpdateEvent = new("it", "quest è un test modificato", user);
@@ -53,7 +54,7 @@ public class LocaleItemsTest
 		TranslationItemUpdateEvent tiUpdateEventB = new("fr", "c'est un test modifié", user);
 		TranslationItemUpdateEvent tiUpdateEvent2B = new("fr", lastContent, user);
 
-		IList<EventBase> events = [
+		IList<StoreEvent> events = [
 			creationEvent,
 			updateEvent,
 			updateEvent2,
