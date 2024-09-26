@@ -6,15 +6,13 @@ using Amazon.DynamoDBv2.Model;
 
 namespace EventSourcingStore
 {
-
-	public static class Formatters
+	static class Formatters
 	{
 		public const string DATETIME_FORMATTER = "yyyy-MM-dd'T'HH:mm:ss.fffffffK";
 	}
 
 	public class DynamoDBStoreEvent : StoreEvent
 	{
-
 		public DynamoDBStoreEvent() : base()
 		{ }
 
@@ -48,6 +46,12 @@ namespace EventSourcingStore
 		private readonly AmazonDynamoDBClient _client;
 		private readonly DynamoDBContext _context;
 		private readonly string _tableName;
+
+		public string GetTableName()
+		{
+			return _tableName;
+		}
+
 
 		public DynamoDBEventStore(string tableName)
 		{
@@ -140,6 +144,7 @@ namespace EventSourcingStore
 
 			return result;
 		}
+
 
 	}
 

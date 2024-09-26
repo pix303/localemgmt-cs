@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Localemgmt.Domain\Localemgmt.Domain.csproj" />
+    <ProjectReference Include="..\EventSourcingStore\EventSourcingStore.csproj" />
   </ItemGroup>
 
 </Project>
