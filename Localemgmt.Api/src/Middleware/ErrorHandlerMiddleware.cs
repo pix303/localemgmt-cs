@@ -6,35 +6,35 @@ namespace Localemgmt.Api.Middleware;
 
 public class ErrorHandlerMiddleware
 {
-  private readonly RequestDelegate _next;
+    private readonly RequestDelegate _next;
 
-  public ErrorHandlerMiddleware(RequestDelegate next)
-  {
-    _next = next;
-  }
-
-  public async Task Invoke(HttpContext httpContext)
-  {
-    try
+    public ErrorHandlerMiddleware(RequestDelegate next)
     {
-      await _next(httpContext);
+        _next = next;
     }
-    catch (System.Exception exp)
+
+    public async Task Invoke(HttpContext httpContext)
     {
-      await HandleExeptionAsync(httpContext, exp);
+        try
+        {
+            await _next(httpContext);
+        }
+        catch (System.Exception exp)
+        {
+            await HandleExeptionAsync(httpContext, exp);
+        }
     }
-  }
 
 
-  private static Task HandleExeptionAsync(HttpContext httpContext, Exception exp)
-  {
-    var httpCode = HttpStatusCode.InternalServerError;
-    var result = JsonSerializer.Serialize(new { error = exp.Message });
-    httpContext.Response.ContentType = "application/json";
-    httpContext.Response.StatusCode = (int)httpCode;
+    private static Task HandleExeptionAsync(HttpContext httpContext, Exception exp)
+    {
+        var httpCode = HttpStatusCode.InternalServerError;
+        var result = JsonSerializer.Serialize(new { error = exp.Message });
+        httpContext.Response.ContentType = "application/json";
+        httpContext.Response.StatusCode = (int)httpCode;
 
-    return httpContext.Response.WriteAsync(result);
-  }
+        return httpContext.Response.WriteAsync(result);
+    }
 }
 
 

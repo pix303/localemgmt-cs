@@ -5,6 +5,7 @@ using Localemgmt.Api.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Localemgmt.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,29 +19,29 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.RegisterMapsterConfiguration();
 
-builder.Services.AddAuthentication(opts =>
-{
-    opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+// builder.Services.AddAuthentication(opts =>
+// {
+//     opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//     opts.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//     opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 
-}).AddJwtBearer(opts =>
-{
-    var skey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!));
-    opts.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
-        IssuerSigningKey = skey,
-        ValidateIssuerSigningKey = true,
-        ValidateAudience = true,
-        ValidateIssuer = true,
-        ValidateLifetime = true,
-    };
+// }).AddJwtBearer(opts =>
+// {
+//     var skey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]!));
+//     opts.TokenValidationParameters = new TokenValidationParameters
+//     {
+//         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+//         ValidAudience = builder.Configuration["JwtSettings:Audience"],
+//         IssuerSigningKey = skey,
+//         ValidateIssuerSigningKey = true,
+//         ValidateAudience = true,
+//         ValidateIssuer = true,
+//         ValidateLifetime = true,
+//     };
 
-});
+// });
 
-builder.Services.AddAuthorization();
+// builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -52,9 +53,9 @@ if (app.Environment.IsDevelopment())
 }
 
 
-// app.UseMiddleware<ErrorHandlerMiddleware>();
-app.UseExceptionHandler("/error");
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseMiddleware<ErrorHandlerMiddleware>();
+// app.UseExceptionHandler("/error");
+// app.UseAuthentication();
+// app.UseAuthorization();
 app.MapControllers();
 app.Run();
