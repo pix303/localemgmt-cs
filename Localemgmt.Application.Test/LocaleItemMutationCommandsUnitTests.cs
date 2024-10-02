@@ -45,7 +45,7 @@ public class LocaleItemMutationCommandsUnitTests : IClassFixture<StoreFixture>
 
         var result = await handler.Handle(command, CancellationToken.None);
         Assert.NotEmpty(result.Value.AggregateId);
-        Assert.Equal(result.Value.Type, Localemgmt.Domain.LocaleItems.Events.LocaleItemEventTypes.AddLocaleItem);
+        Assert.Equal(Localemgmt.Domain.LocaleItems.Events.LocaleItemEventTypes.LocaleItemAdded, result.Value.Type);
     }
 
     [Fact]
@@ -62,8 +62,8 @@ public class LocaleItemMutationCommandsUnitTests : IClassFixture<StoreFixture>
         );
 
         var result = await handler.Handle(command, CancellationToken.None);
-        Assert.Equal(result.Value.AggregateId, id);
-        Assert.Equal(result.Value.Type, Localemgmt.Domain.LocaleItems.Events.LocaleItemEventTypes.UpdateLocaleItem);
+        Assert.Equal(id, result.Value.AggregateId);
+        Assert.Equal(Localemgmt.Domain.LocaleItems.Events.LocaleItemEventTypes.LocaleItemUpdated, result.Value.Type);
     }
 
 
