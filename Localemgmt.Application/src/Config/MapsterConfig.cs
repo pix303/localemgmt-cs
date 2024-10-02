@@ -8,10 +8,9 @@ using System.Reflection;
 
 namespace Localemgmt.Api.Config
 {
-
 	public static class MapsterConfig
 	{
-		public static void RegisterMapsterConfiguration(this IServiceCollection collection)
+		public static void RegisterMapsterConfiguration()
 		{
 			TypeAdapterConfig<UserInfo, UserInfoResponse>.NewConfig()
 			.Map(d => d.Id, s => s.Id)

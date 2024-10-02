@@ -1,3 +1,4 @@
+using Localemgmt.Api.Config;
 using Localemgmt.Application.Services.Messages;
 using Localemgmt.Application.src.Services.Messages;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,10 @@ public static class DependecyInjection
 	{
 		services.AddScoped<IGenericMessageService, GenericMessageService>();
 		services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependecyInjection).Assembly));
+
+		MapsterConfig.RegisterMapsterConfiguration();
+
+
 		return services;
 	}
 }

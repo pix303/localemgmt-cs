@@ -1,10 +1,9 @@
 // using Localemgmt.Api.Middleware;
 using Localemgmt.Application;
 using Localemgmt.Infrastructure;
-using Localemgmt.Api.Config;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+// using Microsoft.AspNetCore.Authentication.JwtBearer;
+// using Microsoft.IdentityModel.Tokens;
+// using System.Text;
 using Localemgmt.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +16,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
-builder.Services.RegisterMapsterConfiguration();
 
 // builder.Services.AddAuthentication(opts =>
 // {
