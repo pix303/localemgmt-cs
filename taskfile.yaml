@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+ test:
+   cmds:
+   - "dotnet test Localemgmt.Api.Test/Localemgmt.Api.Test.csproj"
+   - "dotnet test Localemgmt.Application.Test/Localemgmt.Application.Test.csproj"
+   - "dotnet test Localemgmt.Domain.Test/Localemgmt.Domain.Test.csproj"
+   - "dotnet test EventSourcingStore.Test/EventSourcingStore.Test.csproj"
+ run:
+   cmds:
+   - "dotnet run --project Localemgmt.Api"
