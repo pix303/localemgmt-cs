@@ -7,7 +7,7 @@ using Mapster;
 namespace Localemgmt.Application.LocaleItem.Commands.Update;
 
 
-public class UpdateLocaleItemCommandHandler : IRequestHandler<UpdateLocaleItemCommand, ErrorOr<bool>>
+public class UpdateLocaleItemCommandHandler : IRequestHandler<UpdateLocaleItemCommand, ErrorOr<StoreEvent>>
 {
 	private IEventStore _store;
 
@@ -16,10 +16,9 @@ public class UpdateLocaleItemCommandHandler : IRequestHandler<UpdateLocaleItemCo
 		_store = store;
 	}
 
-	public async Task<ErrorOr<bool>> Handle(UpdateLocaleItemCommand request, CancellationToken token)
+	public async Task<ErrorOr<StoreEvent>> Handle(UpdateLocaleItemCommand request, CancellationToken token)
 	{
-		var e = request.Adapt<LocaleItemCreationEvent>();
-		Console.WriteLine(e);
+		var e = request.Adapt<LocaleItemUpdateEvent>();
 		var result = await _store.Append(e);
 		return result;
 	}

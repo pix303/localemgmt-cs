@@ -5,13 +5,15 @@ namespace Localemgmt.Contracts.LocaleItem;
 public record LocaleItemMutationRequest
 (
 
-	[MinLength(2), MaxLength(6)]
+	[Required, MinLength(2), MaxLength(6)]
 	string Lang,
 
+	[Required]
 	string Content,
 
-	[MinLength(3), MaxLength(64) ]
+	[Required, MinLength(3), MaxLength(64) ]
 	string Context,
 
+	[Required]
 	string UserId
 );
