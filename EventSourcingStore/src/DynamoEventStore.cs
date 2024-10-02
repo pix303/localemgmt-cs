@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
+using ErrorOr;
 
 namespace EventSourcingStore
 {
@@ -60,7 +61,7 @@ namespace EventSourcingStore
 			_tableName = tableName;
 		}
 
-		public async Task<bool> Append<T>(T @event) where T : StoreEvent
+		public async Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent
 		{
 			@event.InitEvent();
 			var eventAsJson = JsonSerializer.Serialize<T>(@event);
@@ -74,10 +75,16 @@ namespace EventSourcingStore
 			};
 
 			var response = await _client.PutItemAsync(appendEventRequest);
-			return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
+
+			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+			{
+				return @event;
+			}
+
+			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Appending event to store");
 		}
 
-		public async Task<StoreEvent?> Retrive(string aggregateId, DateTime createdAt)
+		public async Task<ErrorOr<StoreEvent?>> Retrive(string aggregateId, DateTime createdAt)
 		{
 			var getEventRequest = new GetItemRequest
 			{
@@ -102,19 +109,26 @@ namespace EventSourcingStore
 			};
 
 			var response = await _client.GetItemAsync(getEventRequest);
-			var resultItem = response.Item;
-
-			if (resultItem is not null)
+			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
 			{
-				var evt = new DynamoDBStoreEvent(resultItem);
-				return evt;
+				var resultItem = response.Item;
+
+				if (resultItem is not null)
+				{
+					var evt = new DynamoDBStoreEvent(resultItem);
+					return evt;
+				}
+				else
+				{
+					Error.NotFound();
+				}
 			}
 
-			return null;
+			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Retriving event from store");
 		}
 
 
-		public async Task<List<StoreEvent>> RetriveByAggregate(string aggregateId)
+		public async Task<ErrorOr<List<StoreEvent>>> RetriveByAggregate(string aggregateId)
 		{
 			var q = new QueryRequest
 			{
@@ -133,19 +147,21 @@ namespace EventSourcingStore
 			};
 
 			var response = await _client.QueryAsync(q);
-			var resultItems = response.Items;
-
-			var result = new List<StoreEvent>();
-			foreach (var item in resultItems)
+			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
 			{
-				var evt = new DynamoDBStoreEvent(item);
-				result.Add(evt);
+				var resultItems = response.Items;
+
+				var result = new List<StoreEvent>();
+				foreach (var item in resultItems)
+				{
+					var evt = new DynamoDBStoreEvent(item);
+					result.Add(evt);
+				}
+
+				return result;
 			}
 
-			return result;
+			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Retriving event from store");
 		}
-
-
 	}
-
 }

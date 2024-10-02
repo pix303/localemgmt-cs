@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using ErrorOr;
 
 namespace EventSourcingStore;
 
@@ -39,12 +40,11 @@ public class StoreEvent
 
 }
 
-
 public interface IEventStore
 {
-	Task<bool> Append<T>(T @event) where T : StoreEvent;
-	Task<StoreEvent?> Retrive(string aggregateId, DateTime cratedAt);
-	Task<List<StoreEvent>> RetriveByAggregate(string aggregateId);
+	Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent;
+	Task<ErrorOr<StoreEvent?>> Retrive(string aggregateId, DateTime cratedAt);
+	Task<ErrorOr<List<StoreEvent>>> RetriveByAggregate(string aggregateId);
 	string GetTableName();
 }
 
