@@ -5,10 +5,10 @@ namespace Localemgmt.Domain.LocaleItems.Events
 
 	public static class LocaleItemEventTypes
 	{
-		public const string AddLocaleItem = "ADD_LOCALE_ITEM";
-		public const string UpdateLocaleItem = "UPDATE_LOCALE_ITEM";
-		public const string AddTranslationItem = "ADD_TRANSLATION_ITEM";
-		public const string UpdateTranslationItem = "UPDATE_TRANSLATION_ITEM";
+		public const string LocaleItemAdded = "LOCALE_ITEM_ADDED";
+		public const string LocaleItemUpdated = "LOCALE_ITEM_UPDATED";
+		public const string TranslationItemAdded = "TRANSLATION_ITEM_ADDED";
+		public const string TranslationItemUpdated = "TRANSLATION_ITEM_UPDATED";
 	}
 
 
@@ -50,7 +50,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			null
 		)
 		{
-			Type = LocaleItemEventTypes.AddTranslationItem;
+			Type = LocaleItemEventTypes.TranslationItemAdded;
 		}
 	};
 
@@ -67,7 +67,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			null
 		)
 		{
-			Type = LocaleItemEventTypes.UpdateTranslationItem;
+			Type = LocaleItemEventTypes.TranslationItemUpdated;
 		}
 	};
 
@@ -114,7 +114,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			Guid.NewGuid().ToString()
 		)
 		{
-			Type = LocaleItemEventTypes.AddLocaleItem;
+			Type = LocaleItemEventTypes.LocaleItemAdded;
 		}
 	};
 
@@ -134,7 +134,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			aggreateId
 		)
 		{
-			Type = LocaleItemEventTypes.UpdateLocaleItem;
+			Type = LocaleItemEventTypes.LocaleItemUpdated;
 		}
 	};
 
