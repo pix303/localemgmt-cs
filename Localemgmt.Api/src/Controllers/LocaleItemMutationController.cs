@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using ErrorOr;
 using MediatR;
-using Localemgmt.Contracts.LocaleItem;
 using Mapster;
+using Localemgmt.Contracts.LocaleItem;
 using Localemgmt.Application.LocaleItem.Commands.Add;
 using Localemgmt.Application.LocaleItem.Commands.Update;
+using Localemgmt.Application.Commons;
 
 
 namespace Localemgmt.Api.Controllers;
@@ -24,7 +24,7 @@ public class LocaleItemMutationController : ControllerBase
 
 	[HttpPost]
 	[Route("add")]
-	public Task<ActionResult<LocaleItemMutationResponse>> Add(LocaleItemMutationRequest request)
+	public Task<IActionResult> Add(LocaleItemMutationRequest request)
 	{
 		return Mutation<AddLocaleItemCommand>(request);
 	}
@@ -32,21 +32,25 @@ public class LocaleItemMutationController : ControllerBase
 
 	[HttpPost]
 	[Route("update")]
-	public Task<ActionResult<LocaleItemMutationResponse>> Update(LocaleItemMutationRequest request)
+	public Task<IActionResult> Update(LocaleItemMutationRequest request)
 	{
 		return Mutation<UpdateLocaleItemCommand>(request);
 	}
 
-	private async Task<ActionResult<LocaleItemMutationResponse>> Mutation<TCommand>(LocaleItemMutationRequest request) where TCommand : IRequest<ErrorOr<bool>>
+	private async Task<IActionResult> Mutation<TCommand>(LocaleItemMutationRequest request) where TCommand : ICommand
 	{
 		var command = request.Adapt<TCommand>();
-		ErrorOr<bool> serviceResult = await _mediator.Send(command);
+
+		var validationResult = command.Validate();
+		if (validationResult.IsError)
+		{
+			return Problem(validationResult.FirstError.Description, null, StatusCodes.Status400BadRequest, "Bad request");
+		}
+
+		var serviceResult = await _mediator.Send(command);
 		return serviceResult.Match(
-		  value => Ok(new LocaleItemMutationResponse(value)),
+		  value => Ok(new LocaleItemMutationResponse(value.AggregateId)),
 		  exp => Problem(exp.First().Description)
 		);
 	}
-
-
-
 }
