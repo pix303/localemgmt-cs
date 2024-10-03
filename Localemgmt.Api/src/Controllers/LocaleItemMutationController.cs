@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using MediatR;
 using Mapster;
 using Localemgmt.Contracts.LocaleItem;
-using Localemgmt.Application.LocaleItem.Commands.Add;
-using Localemgmt.Application.LocaleItem.Commands.Update;
-using Localemgmt.Application.Commons;
-
+using EventSourcingStore;
+using Localemgmt.Domain.LocaleItems.Events;
+using Localemgmt.Application.LocaleItem.Validators;
+using FluentValidation;
 
 namespace Localemgmt.Api.Controllers;
 
@@ -13,44 +12,74 @@ namespace Localemgmt.Api.Controllers;
 [Route("localeitem")]
 public class LocaleItemMutationController : ControllerBase
 {
-	ISender _mediator;
+	IEventStore _store;
+	ILogger<LocaleItemMutationController> _logger;
 
-
-	public LocaleItemMutationController(ISender mediator)
+	public LocaleItemMutationController(IEventStore store, ILogger<LocaleItemMutationController> logger)
 	{
-		_mediator = mediator;
+		_store = store;
+		_logger = logger;
 	}
 
 
 	[HttpPost]
 	[Route("add")]
-	public Task<IActionResult> Add(LocaleItemMutationRequest request)
+	public async Task<IActionResult> Add(LocaleItemMutationRequest request)
 	{
-		return Mutation<AddLocaleItemCommand>(request);
+		_logger.LogInformation("Adding locale item by request {}", request);
+
+		// event validation
+		var validationError = Validate(new AddLocaleItemRequestValidator(), request);
+		if (validationError is not null)
+		{
+			_logger.LogError("Error on validation {}", validationError);
+			return validationError;
+		}
+
+		// event persistence
+		var e = request.Adapt<LocaleItemCreationEvent>();
+		var result = await _store.Append(e);
+		return result.Match(
+			value =>
+			{
+				_logger.LogInformation("Added locale item with id {}", value.AggregateId);
+				return Ok(new LocaleItemMutationResponse(value.AggregateId));
+			},
+			err => Problem(err.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error")
+	  );
 	}
 
 
 	[HttpPost]
 	[Route("update")]
-	public Task<IActionResult> Update(LocaleItemMutationRequest request)
+	public async Task<IActionResult> Update(LocaleItemMutationRequest request)
 	{
-		return Mutation<UpdateLocaleItemCommand>(request);
-	}
-
-	private async Task<IActionResult> Mutation<TCommand>(LocaleItemMutationRequest request) where TCommand : ICommand
-	{
-		var command = request.Adapt<TCommand>();
-
-		var validationResult = command.Validate();
-		if (validationResult.IsError)
+		// event validation
+		var validationError = Validate(new UpdateLocaleItemRequestValidator(), request);
+		if (validationError is not null)
 		{
-			return Problem(validationResult.FirstError.Description, null, StatusCodes.Status400BadRequest, "Bad request");
+			return validationError;
 		}
 
-		var serviceResult = await _mediator.Send(command);
-		return serviceResult.Match(
-		  value => Ok(new LocaleItemMutationResponse(value.AggregateId)),
-		  exp => Problem(exp.First().Description)
-		);
+		// event persistence
+		var e = request.Adapt<LocaleItemUpdateEvent>();
+		var result = await _store.Append(e);
+		return result.Match(
+			value => Ok(new LocaleItemMutationResponse(value.AggregateId)),
+			err => Problem(err.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error")
+	  );
+	}
+
+
+	private ObjectResult? Validate(IValidator<LocaleItemMutationRequest> validator, LocaleItemMutationRequest request)
+	{
+		// event validation
+		var validation = validator.Validate(request);
+		if (validation.IsValid == false)
+		{
+			var errorMsg = validation.Errors.First().ErrorMessage;
+			return Problem(errorMsg, null, StatusCodes.Status400BadRequest, "Bad request");
+		}
+		return null;
 	}
 }

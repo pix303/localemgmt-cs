@@ -12,7 +12,7 @@ public class StoreFixture
     public IEventStore store;
     public StoreFixture()
     {
-        store = new MockEventStore();
+        store = new InMemoryEventStore();
         MapsterConfig.RegisterMapsterConfiguration();
     }
 }

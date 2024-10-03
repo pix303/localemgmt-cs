@@ -6,7 +6,11 @@ using Localemgmt.Infrastructure;
 // using System.Text;
 using Localemgmt.Api.Middleware;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 builder.Services.AddControllers();
 
@@ -16,6 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
+builder.Services.AddLogging();
 
 // builder.Services.AddAuthentication(opts =>
 // {

@@ -4,7 +4,6 @@ namespace Localemgmt.Contracts.LocaleItem;
 
 public record LocaleItemMutationRequest
 (
-
 	[Required, MinLength(2), MaxLength(6)]
 	string Lang,
 
@@ -15,5 +14,7 @@ public record LocaleItemMutationRequest
 	string Context,
 
 	[Required]
-	string UserId
+	string UserId,
+
+	string? AggregateId
 );
