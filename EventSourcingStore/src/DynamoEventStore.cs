@@ -31,14 +31,14 @@ namespace EventSourcingStore
 			DynamoDBEntry id;
 			eventDoc.TryGetValue("id", out id);
 
-			var eventJson = eventDoc.ToJson();
-			var @event = JsonSerializer.Deserialize<StoreEvent>(eventJson);
+			var evtJson = eventDoc.ToJson();
+			var evt = JsonSerializer.Deserialize<StoreEvent>(evtJson);
+			Console.WriteLine(evt);
 
-			if (@event is not null)
-			{
-				this.AggregateId = @event.AggregateId;
-				this.InitEvent(id.AsString(), creationDate.AsDateTimeUtc());
-			}
+			// if (@event is not null)
+			// {
+			// 	this.InitEvent(id.AsString(), creationDate.AsDateTimeUtc());
+			// }
 		}
 	}
 

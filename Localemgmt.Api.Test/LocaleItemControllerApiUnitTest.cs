@@ -1,117 +1,197 @@
-using ErrorOr;
 using EventSourcingStore;
-using EventSourcingStore.Test;
 using Localemgmt.Api.Config;
 using Localemgmt.Api.Controllers;
-using Localemgmt.Application.LocaleItem.Commands.Add;
 using Localemgmt.Contracts.LocaleItem;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
+using Microsoft.Extensions.Logging;
+
 
 namespace Localemgmt.Api.Test;
 
-public class LocaleItemControllerApiUnitTest
+
+public class StoreFixture
+{
+    public IEventStore store;
+    public ILogger<LocaleItemMutationController> logger;
+
+    public StoreFixture()
+    {
+        store = new InMemoryEventStore();
+        logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<LocaleItemMutationController>();
+        MapsterConfig.RegisterMapsterConfiguration();
+    }
+}
+
+
+public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
 {
     string _lang = "it";
     string _context = "Default";
     string _baseContent = "this is a test";
     string _userId = "123";
+    string _aggregateId = "";
 
-    ISender _sender;
+    StoreFixture _fixture;
 
-    public LocaleItemControllerApiUnitTest()
+
+    public LocaleItemControllerApiUnitTest(StoreFixture fixture)
     {
-        var services = new ServiceCollection();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-        services.AddTransient<IRequestHandler<AddLocaleItemCommand, ErrorOr<StoreEvent>>, AddLocaleItemCommandHandler>();
-        services.AddScoped<IEventStore, MockEventStore>();
-
-        MapsterConfig.RegisterMapsterConfiguration();
-        var serviceProvider = services.BuildServiceProvider();
-        _sender = serviceProvider.GetRequiredService<ISender>();
-
+        _fixture = fixture;
     }
 
     [Fact]
     public async void AddItem_Ok()
     {
-        var controller = new LocaleItemMutationController(_sender);
+        await InternalAdd();
+    }
+
+
+
+    [Fact]
+    public async void AddItem_BadRequest()
+    {
+        LocaleItemMutationRequest request = new(
+            Lang: "",
+            Content: _baseContent,
+            Context: _context,
+            UserId: _userId,
+            AggregateId: null
+        );
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var result = await controller.Add(request);
+        AssertBadRequest(result, "Lang");
+    }
+
+    [Fact]
+    public async void AddItem_BadRequest2()
+    {
+        LocaleItemMutationRequest request = new(
+            Lang: _lang,
+            Content: "",
+            Context: _context,
+            UserId: _userId,
+            AggregateId: null
+        );
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var result = await controller.Add(request);
+        AssertBadRequest(result, "Content");
+    }
+
+    [Fact]
+    public async void AddItem_BadRequest3()
+    {
+        LocaleItemMutationRequest request = new(
+            Lang: _lang,
+            Content: _baseContent,
+            Context: "",
+            UserId: _userId,
+            AggregateId: null
+        );
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var result = await controller.Add(request);
+        AssertBadRequest(result, "Context");
+    }
+
+    [Fact]
+    public async void AddItem_BadRequest4()
+    {
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        LocaleItemMutationRequest request = new(
+            Lang: "",
+            Content: "",
+            Context: "",
+            UserId: "",
+            AggregateId: null
+        );
+        var result = await controller.Add(request);
+        AssertBadRequest(result, "Lang");
+    }
+
+
+    [Fact]
+    public async void UpdateItem_Ok()
+    {
+        var aggregateId = await InternalAdd();
+
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
         LocaleItemMutationRequest request = new(
             Lang: _lang,
             Content: _baseContent,
             Context: _context,
-            UserId: _userId
-        );
+            UserId: _userId,
+            AggregateId: aggregateId);
 
-        var result = await controller.Add(request);
-        var okResult = Assert.IsAssignableFrom<ObjectResult>(result);
+        var result = await controller.Update(request);
+        var okResult = Assert.IsAssignableFrom<OkObjectResult>(result);
         Assert.NotNull(okResult);
         Assert.Equal(okResult.StatusCode, StatusCodes.Status200OK);
         var resultValue = okResult.Value as LocaleItemMutationResponse;
         Assert.NotNull(resultValue);
-        Assert.NotNull(resultValue.AggregateId);
+        Assert.NotEmpty(resultValue.AggregateId);
     }
 
-    [Fact]
-    public void AddItem_BadRequest()
-    {
-        var controller = new LocaleItemMutationController(_sender);
-        LocaleItemMutationRequest request = new(
-            Lang: "",
-            Content: _baseContent,
-            Context: _context,
-            UserId: _userId
-        );
-        AssertBadRequest(request, "Lang");
-    }
 
     [Fact]
-    public void AddItem_BadRequest2()
+    public async void UpdateItem_BadRequest()
     {
-        var controller = new LocaleItemMutationController(_sender);
-        LocaleItemMutationRequest request = new(
-            Lang: _lang,
-            Content: "",
-            Context: _context,
-            UserId: _userId
-        );
-        AssertBadRequest(request, "Content");
-    }
+        var aggregateId = await InternalAdd();
 
-    [Fact]
-    public void AddItem_BadRequest3()
-    {
-        var controller = new LocaleItemMutationController(_sender);
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
         LocaleItemMutationRequest request = new(
             Lang: _lang,
             Content: _baseContent,
-            Context: "",
-            UserId: ""
-        );
-        AssertBadRequest(request, "Context");
+            Context: _context,
+            UserId: _userId,
+            AggregateId: null
+            );
+
+        var result = await controller.Update(request);
+        AssertBadRequest(result, "required");
     }
 
     [Fact]
-    public void AddItem_BadRequest4()
+    public async void UpdateItem_BadRequest2()
     {
+        var aggregateId = await InternalAdd();
+
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
         LocaleItemMutationRequest request = new(
-            Lang: "",
-            Content: "",
-            Context: "",
-            UserId: ""
+            Lang: _lang,
+            Content: _baseContent,
+            Context: _context,
+            UserId: _userId,
+            AggregateId: ""
         );
-        AssertBadRequest(request, "Lang");
+
+        var result = await controller.Update(request);
+        AssertBadRequest(result, "required");
     }
 
 
-    private async void AssertBadRequest(LocaleItemMutationRequest request, string descriptionPart)
+    private async Task<string> InternalAdd()
     {
-        var controller = new LocaleItemMutationController(_sender);
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        LocaleItemMutationRequest request = new(
+            Lang: _lang,
+            Content: _baseContent,
+            Context: _context,
+            UserId: _userId,
+            AggregateId: null
+        );
+
         var result = await controller.Add(request);
+        var okResult = Assert.IsAssignableFrom<OkObjectResult>(result);
+        Assert.NotNull(okResult);
+        Assert.Equal(okResult.StatusCode, StatusCodes.Status200OK);
+        var resultValue = okResult.Value as LocaleItemMutationResponse;
+        Assert.NotNull(resultValue);
+        Assert.NotEmpty(resultValue.AggregateId);
+        return resultValue.AggregateId;
+    }
 
+    private void AssertBadRequest(IActionResult result, string descriptionPart)
+    {
         var problem = Assert.IsType<ObjectResult>(result);
         Assert.Equal(problem.StatusCode, StatusCodes.Status400BadRequest);
         var problemDetails = Assert.IsType<ProblemDetails>(problem.Value);

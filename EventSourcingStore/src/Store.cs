@@ -30,12 +30,17 @@ public class StoreEvent
 	{
 		this.Id = Guid.NewGuid().ToString();
 		this.CreatedAt = DateTime.UtcNow;
+		if (this.AggregateId is null)
+		{
+			this.AggregateId = Guid.NewGuid().ToString();
+		}
 	}
 
-	public void InitEvent(string id, DateTime createdAt)
+	public void InitEvent(string id, DateTime createdAt, string aggregateId)
 	{
 		this.Id = id;
 		this.CreatedAt = createdAt;
+		this.AggregateId = aggregateId;
 	}
 
 }
