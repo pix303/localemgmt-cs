@@ -5,10 +5,16 @@ using Localemgmt.Infrastructure;
 // using Microsoft.IdentityModel.Tokens;
 // using System.Text;
 using Localemgmt.Api.Middleware;
+using MassTransit;
+// using Localemgmt.Api.Consumer;
+using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -16,6 +22,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
+builder.Services.AddLogging();
+builder.Services.AddMassTransit(configuration =>
+{
+    configuration.UsingInMemory((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
+    configuration.AddConsumers(Assembly.GetExecutingAssembly());
+});
+
+builder.Services.AddControllers();
 
 // builder.Services.AddAuthentication(opts =>
 // {
