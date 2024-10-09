@@ -7,17 +7,24 @@ using ErrorOr;
 
 namespace EventSourcingStore
 {
-	static class Formatters
+	public static class DyanamoDateFormatters
 	{
 		public const string DATETIME_FORMATTER = "yyyy-MM-dd'T'HH:mm:ss.fffffffK";
+
+		public static string FormatDate(DateTime date)
+		{
+			var dateKey = date.ToString(DyanamoDateFormatters.DATETIME_FORMATTER);
+			return dateKey;
+		}
 	}
+
 
 	public class DynamoDBStoreEvent : StoreEvent
 	{
 		public DynamoDBStoreEvent() : base()
 		{ }
 
-		public DynamoDBStoreEvent(Dictionary<string, AttributeValue> item) : base()
+		public DynamoDBStoreEvent(Dictionary<string, AttributeValue> item)
 		{
 			this.InitFromDynamoDBResult(item);
 		}
@@ -26,19 +33,17 @@ namespace EventSourcingStore
 		{
 			var eventDoc = Document.FromAttributeMap(item);
 
-			DynamoDBEntry creationDate;
-			eventDoc.TryGetValue("createdAt", out creationDate);
+			DynamoDBEntry creationDateEntry;
+			eventDoc.TryGetValue("createdAt", out creationDateEntry);
 			DynamoDBEntry id;
 			eventDoc.TryGetValue("id", out id);
+			DynamoDBEntry aggregateId;
+			eventDoc.TryGetValue("aggregateId", out aggregateId);
 
 			var evtJson = eventDoc.ToJson();
 			var evt = JsonSerializer.Deserialize<StoreEvent>(evtJson);
-			Console.WriteLine(evt);
-
-			// if (@event is not null)
-			// {
-			// 	this.InitEvent(id.AsString(), creationDate.AsDateTimeUtc());
-			// }
+			var creationDate = creationDateEntry.AsDateTime();
+			this.InitEvent(id, DateTime.UtcNow, aggregateId);
 		}
 	}
 
@@ -61,10 +66,10 @@ namespace EventSourcingStore
 			_tableName = tableName;
 		}
 
-		public async Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent
+		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 		{
-			@event.InitEvent();
-			var eventAsJson = JsonSerializer.Serialize<T>(@event);
+			evt.InitEvent();
+			var eventAsJson = JsonSerializer.Serialize<T>(evt);
 			var eventAsDoc = Document.FromJson(eventAsJson);
 			var eventAsAttributes = eventAsDoc.ToAttributeMap();
 
@@ -78,7 +83,7 @@ namespace EventSourcingStore
 
 			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
 			{
-				return @event;
+				return evt;
 			}
 
 			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Appending event to store");
@@ -102,7 +107,7 @@ namespace EventSourcingStore
 						"createdAt",
 						new AttributeValue
 						{
-							S = createdAt.ToString(Formatters.DATETIME_FORMATTER)
+							S = DyanamoDateFormatters.FormatDate(createdAt)
 						}
 					}
 				}
@@ -113,7 +118,7 @@ namespace EventSourcingStore
 			{
 				var resultItem = response.Item;
 
-				if (resultItem is not null)
+				if (resultItem is not null && resultItem.Count > 0)
 				{
 					var evt = new DynamoDBStoreEvent(resultItem);
 					return evt;

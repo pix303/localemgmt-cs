@@ -23,14 +23,14 @@ public class StoreEvent
 
 	override public string ToString()
 	{
-		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt}";
+		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt} - type: {Type}";
 	}
 
 	public void InitEvent()
 	{
 		this.Id = Guid.NewGuid().ToString();
 		this.CreatedAt = DateTime.UtcNow;
-		if (this.AggregateId is null)
+		if (String.IsNullOrEmpty(this.AggregateId))
 		{
 			this.AggregateId = Guid.NewGuid().ToString();
 		}
