@@ -15,7 +15,7 @@ namespace Localemgmt.Api.Config
 			.Map(d => d.Id, s => s.Id)
 			.Map(d => d, s => s.User);
 
-			TypeAdapterConfig<LocaleItemMutationRequest, LocaleItemCreationEvent>.NewConfig()
+			TypeAdapterConfig<LocaleItemCreationRequest, LocaleItemCreationEvent>.NewConfig()
 			.ConstructUsing(s =>
 				new LocaleItemCreationEvent(
 					s.Lang,
@@ -24,7 +24,7 @@ namespace Localemgmt.Api.Config
 					s.Context
 				));
 
-			TypeAdapterConfig<LocaleItemMutationRequest, LocaleItemUpdateEvent>.NewConfig()
+			TypeAdapterConfig<LocaleItemUpdateRequest, LocaleItemUpdateEvent>.NewConfig()
 			.ConstructUsing(s =>
 				new LocaleItemUpdateEvent(
 					s.Lang,
