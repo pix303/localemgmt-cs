@@ -17,17 +17,17 @@ curl -X POST http://localhost:5028/localeitem/add/ \
 
 
 
-json_data=$(
-  cat <<EOF
-{
-    "lang": "it",
-    "content": "ciao amore amore amore",
-    "context": "app",
-    "userId": "0"
-}
-EOF
-)
+# json_data=$(
+#   cat <<EOF
+# {
+#     "lang": "it",
+#     "content": "ciao amore amore amore",
+#     "context": "app",
+#     "userId": "0"
+# }
+# EOF
+# )
 
-curl -X POST http://localhost:5028/localeitem/add/ \
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
+# curl -X POST http://localhost:5028/localeitem/add/ \
+#   --header "Content-Type: application/json" \
+#   --data "$json_data"  | jq .
