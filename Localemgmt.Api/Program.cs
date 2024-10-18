@@ -6,8 +6,7 @@ using Localemgmt.Infrastructure;
 // using System.Text;
 using Localemgmt.Api.Middleware;
 using MassTransit;
-// using Localemgmt.Api.Consumer;
-using System.Reflection;
+using Localemgmt.Api.Consumer;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,11 +24,13 @@ builder.Services.AddInfrastructure();
 builder.Services.AddLogging();
 builder.Services.AddMassTransit(configuration =>
 {
+    configuration.AddConsumer<ProjectionConsumer, ProjectionConsumerDefinition>();
     configuration.UsingInMemory((context, cfg) =>
     {
         cfg.ConfigureEndpoints(context);
+        cfg.ConcurrentMessageLimit = 15;
+        cfg.PrefetchCount = 15;
     });
-    configuration.AddConsumers(Assembly.GetExecutingAssembly());
 });
 
 builder.Services.AddControllers();

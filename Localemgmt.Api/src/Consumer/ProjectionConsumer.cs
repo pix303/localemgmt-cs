@@ -1,3 +1,6 @@
+using EventSourcingStore;
+using Localemgmt.Domain.LocaleItems.Events;
+using Localemgmt.Domain.LocaleItems.Projections;
 using MassTransit;
 
 namespace Localemgmt.Api.Consumer;
@@ -7,18 +10,56 @@ public record ProjectionMessage
 	string AggregateId
 );
 
-public class ProjectionConsumer : IConsumer<ProjectionMessage>
+public class ProjectionConsumerDefinition : ConsumerDefinition<ProjectionConsumer>
 {
-	readonly ILogger<ProjectionConsumer> _logger;
-
-	public ProjectionConsumer(ILogger<ProjectionConsumer> logger)
+	public ProjectionConsumerDefinition()
 	{
-		_logger = logger;
+		this.ConcurrentMessageLimit = 15;
 	}
 
-	public async Task Consume(ConsumeContext<ProjectionMessage> context)
+	protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<ProjectionConsumer> consumerConfigurator, IRegistrationContext context)
 	{
-		await Task.Delay(5000);
-		_logger.LogWarning("------------------- qualcosa {}", context.Message.AggregateId);
+		base.ConfigureConsumer(endpointConfigurator, consumerConfigurator, context);
+
+		endpointConfigurator.Batch<ProjectionMessage>(config =>
+		{
+			config.MessageLimit = 15;
+			config.TimeLimit = TimeSpan.FromSeconds(10);
+			config.TimeLimitStart = BatchTimeLimitStart.FromLast;
+		});
+	}
+}
+
+
+public class ProjectionConsumer : IConsumer<Batch<ProjectionMessage>>
+{
+	readonly ILogger<ProjectionConsumer> _logger;
+	readonly IEventStore _store;
+
+	public ProjectionConsumer(ILogger<ProjectionConsumer> logger, IEventStore store)
+	{
+		_logger = logger;
+		_store = store;
+	}
+
+	public async Task Consume(ConsumeContext<Batch<ProjectionMessage>> context)
+	{
+		foreach (var msg in context.Message)
+		{
+			var aggregateId = msg.Message.AggregateId;
+			var result = await _store.RetriveByAggregate<BaseLocalePersistenceEvent>(aggregateId);
+
+			if (result.IsError)
+			{
+				_logger.LogError("Error on doing projection: {}", result.Errors.First().Description);
+			}
+			else
+			{
+				var evtList = result.Value;
+				var localeItem = new LocaleItem();
+				localeItem.Reduce(evtList);
+				_logger.LogWarning(localeItem.Content);
+			}
+		}
 	}
 }
