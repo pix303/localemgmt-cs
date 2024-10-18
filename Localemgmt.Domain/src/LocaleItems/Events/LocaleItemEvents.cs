@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using EventSourcingStore;
 
 namespace Localemgmt.Domain.LocaleItems.Events
@@ -11,7 +12,9 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		public const string TranslationItemUpdated = "TRANSLATION_ITEM_UPDATED";
 	}
 
-
+	[JsonDerivedType(typeof(BaseLocalePersistenceEvent), typeDiscriminator: "base")]
+	[JsonDerivedType(typeof(LocaleItemCreationEvent), typeDiscriminator: "LocaleItemCreationEvent")]
+	[JsonDerivedType(typeof(LocaleItemUpdateEvent), typeDiscriminator: "LocaleItemUpdateEvent")]
 	public class BaseLocalePersistenceEvent : StoreEvent
 	{
 		public string Lang;
@@ -136,6 +139,12 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		{
 			Type = LocaleItemEventTypes.LocaleItemUpdated;
 		}
+
+		override public string ToString()
+		{
+			return $"{base.ToString()} content: {this.Content} context: {this.Context}";
+		}
+
 	};
 
 	public class LocaleItemDeleteEvent : StoreEvent
