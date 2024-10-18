@@ -6,7 +6,7 @@ public class EventStoreUnitTest
 	public async Task DynamoTest()
 	{
 		var store = new DynamoDBEventStore("localemgmt-store");
-		DynamoDBStoreEvent e = new();
+		StoreEvent e = new();
 		var aId = e.AggregateId;
 
 		// append
@@ -14,19 +14,22 @@ public class EventStoreUnitTest
 		Assert.False(result.IsError);
 
 		Thread.Sleep(1000);
-		var result2 = await store.Append(e);
+		StoreEvent e2 = new(aId);
+		var result2 = await store.Append(e2);
 		Assert.False(result2.IsError);
 
 		Thread.Sleep(1000);
-		var result3 = await store.Append(e);
+		StoreEvent e3 = new(aId);
+		var result3 = await store.Append(e3);
 		Assert.False(result3.IsError);
 
 		Thread.Sleep(1000);
-		var result4 = await store.Append(e);
+		StoreEvent e4 = new(aId);
+		var result4 = await store.Append(e4);
 		Assert.False(result4.IsError);
 
 		// retrive all
-		var resultItems = await store.RetriveByAggregate(aId);
+		var resultItems = await store.RetriveByAggregate<StoreEvent>(aId);
 		Assert.False(resultItems.IsError);
 		var items = resultItems.Value;
 		Assert.True(items.Count == 4);
@@ -36,7 +39,7 @@ public class EventStoreUnitTest
 		Assert.Equal(aId, items[3].AggregateId);
 
 		// retrive
-		var resultItem = await store.Retrive(aId, e.CreatedAt);
+		var resultItem = await store.Retrive<StoreEvent>(aId, e.CreatedAt);
 		Assert.False(resultItem.IsError);
 		var item = resultItem.Value;
 		Assert.NotNull(item);

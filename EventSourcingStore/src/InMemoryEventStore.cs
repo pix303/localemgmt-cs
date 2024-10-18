@@ -14,26 +14,25 @@ public class InMemoryEventStore : IEventStore
 
 	public Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent
 	{
-		@event.InitEvent();
 		_eventList.Add(@event);
 		var se = @event as StoreEvent;
 		return Task.FromResult(se.ToErrorOr());
 	}
 
-	public Task<ErrorOr<StoreEvent?>> Retrive(string aggregateId, DateTime cratedAt)
+	public Task<ErrorOr<T?>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent
 	{
-		var result = _eventList.Find(item => item.AggregateId == aggregateId && item.CreatedAt == cratedAt);
+		var result = _eventList.Find(item => item.AggregateId == aggregateId && item.CreatedAt == cratedAt) as T;
 		return Task.FromResult(result.ToErrorOr());
 	}
 
-	public Task<ErrorOr<List<StoreEvent>>> RetriveByAggregate(string aggregateId)
+	public Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent
 	{
-		var result = _eventList.FindAll(item => item.AggregateId == aggregateId);
+		var result = _eventList.FindAll(item => item.AggregateId == aggregateId) as List<T>;
 		if (result is not null)
 		{
 			return Task.FromResult(result.ToErrorOr());
 		}
-		return Task.FromResult(new List<StoreEvent>().ToErrorOr());
+		return Task.FromResult(new List<T>().ToErrorOr());
 	}
 }
 

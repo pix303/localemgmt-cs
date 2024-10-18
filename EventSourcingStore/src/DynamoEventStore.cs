@@ -19,33 +19,22 @@ namespace EventSourcingStore
 	}
 
 
-	public class DynamoDBStoreEvent : StoreEvent
+	public static class DynamoDBStoreEvent
 	{
-		public DynamoDBStoreEvent() : base()
-		{ }
 
-		public DynamoDBStoreEvent(Dictionary<string, AttributeValue> item)
-		{
-			this.InitFromDynamoDBResult(item);
-		}
-
-		public void InitFromDynamoDBResult(Dictionary<string, AttributeValue> item)
+		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item)
 		{
 			var eventDoc = Document.FromAttributeMap(item);
-
-			DynamoDBEntry creationDateEntry;
-			eventDoc.TryGetValue("createdAt", out creationDateEntry);
-			DynamoDBEntry id;
-			eventDoc.TryGetValue("id", out id);
-			DynamoDBEntry aggregateId;
-			eventDoc.TryGetValue("aggregateId", out aggregateId);
-
 			var evtJson = eventDoc.ToJson();
-			var evt = JsonSerializer.Deserialize<StoreEvent>(evtJson);
-			var creationDate = creationDateEntry.AsDateTime();
-			this.InitEvent(id, DateTime.UtcNow, aggregateId);
+			var evt = JsonSerializer.Deserialize<T>(evtJson);
+			if (evt is null)
+			{
+				return Error.Failure(code: "500", description: "error on serialize event");
+			}
+			return evt;
 		}
 	}
+
 
 	public class DynamoDBEventStore : IEventStore
 	{
@@ -68,7 +57,6 @@ namespace EventSourcingStore
 
 		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 		{
-			evt.InitEvent();
 			var eventAsJson = JsonSerializer.Serialize<T>(evt);
 			var eventAsDoc = Document.FromJson(eventAsJson);
 			var eventAsAttributes = eventAsDoc.ToAttributeMap();
@@ -89,7 +77,7 @@ namespace EventSourcingStore
 			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Appending event to store");
 		}
 
-		public async Task<ErrorOr<StoreEvent?>> Retrive(string aggregateId, DateTime createdAt)
+		public async Task<ErrorOr<T>> Retrive<T>(string aggregateId, DateTime createdAt) where T : StoreEvent
 		{
 			var getEventRequest = new GetItemRequest
 			{
@@ -120,7 +108,7 @@ namespace EventSourcingStore
 
 				if (resultItem is not null && resultItem.Count > 0)
 				{
-					var evt = new DynamoDBStoreEvent(resultItem);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(resultItem);
 					return evt;
 				}
 				else
@@ -133,7 +121,7 @@ namespace EventSourcingStore
 		}
 
 
-		public async Task<ErrorOr<List<StoreEvent>>> RetriveByAggregate(string aggregateId)
+		public async Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent
 		{
 			var q = new QueryRequest
 			{
@@ -156,11 +144,14 @@ namespace EventSourcingStore
 			{
 				var resultItems = response.Items;
 
-				var result = new List<StoreEvent>();
+				var result = new List<T>();
 				foreach (var item in resultItems)
 				{
-					var evt = new DynamoDBStoreEvent(item);
-					result.Add(evt);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(item);
+					if (!evt.IsError)
+					{
+						result.Add(evt.Value);
+					}
 				}
 
 				return result;
