@@ -21,6 +21,13 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		public string Content;
 		public string UserId;
 
+		public BaseLocalePersistenceEvent()
+		{
+			Lang = "no-lang";
+			Content = "no-content";
+			UserId = "no-user";
+		}
+
 		public BaseLocalePersistenceEvent(
 			string lang,
 			string content,
