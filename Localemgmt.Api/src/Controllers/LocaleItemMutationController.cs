@@ -47,7 +47,7 @@ public class LocaleItemMutationController : ControllerBase
 
 		// event persistence
 		var e = request.Adapt<LocaleItemCreationEvent>();
-		var result = await _store.Append<LocaleItemCreationEvent>(e);
+		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
 
 		if (result.IsError)
 		{
@@ -82,15 +82,24 @@ public class LocaleItemMutationController : ControllerBase
 		}
 
 		// event persistence
+		Console.WriteLine("-----------update -----request--------------------------");
+		Console.WriteLine(request.AggregateId);
 		var e = request.Adapt<LocaleItemUpdateEvent>();
-		var result = await _store.Append<LocaleItemUpdateEvent>(e);
-
+		Console.WriteLine(e.AggregateId);
+		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
+		Console.WriteLine(result.Value.AggregateId);
+		Console.WriteLine("-----------update -----request ---------- end ----------");
 		if (result.IsError)
 		{
 			return Problem(result.Errors.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error");
 		}
 
 		var aggregateId = result.Value.AggregateId;
+		if (aggregateId != request.AggregateId)
+		{
+			return Problem("aggregate id incoherence", null, StatusCodes.Status500InternalServerError, "Internal server error");
+		}
+
 		var msg = new ProjectionMessage(aggregateId);
 		if (_bus is not null)
 		{

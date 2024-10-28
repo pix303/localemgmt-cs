@@ -24,9 +24,9 @@ namespace Localemgmt.Api.Config
 					s.Context
 				));
 
-			TypeAdapterConfig<LocaleItemUpdateRequest, LocaleItemUpdateEvent>.NewConfig()
-			.ConstructUsing(s =>
+			TypeAdapterConfig<LocaleItemUpdateRequest, LocaleItemUpdateEvent>.NewConfig().ConstructUsing(s =>
 				new LocaleItemUpdateEvent(
+				LocaleItemEventTypes.LocaleItemUpdated,
 					s.Lang,
 					s.Content,
 					s.UserId,
@@ -37,6 +37,8 @@ namespace Localemgmt.Api.Config
 
 			TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 		}
+
+
 	}
 
 }

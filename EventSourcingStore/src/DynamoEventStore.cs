@@ -21,16 +21,11 @@ namespace EventSourcingStore
 
 	public static class DynamoDBStoreEvent
 	{
-
 		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item)
 		{
 			var eventDoc = Document.FromAttributeMap(item);
 			var evtJson = eventDoc.ToJson();
-			var evt = JsonSerializer.Deserialize<T>(evtJson);
-			if (evt is null)
-			{
-				return Error.Failure(code: "500", description: "error on serialize event");
-			}
+			var evt = JsonParser.Deserialize<T>(evtJson);
 			return evt;
 		}
 	}
@@ -58,8 +53,10 @@ namespace EventSourcingStore
 		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 		{
 			var eventAsJson = JsonSerializer.Serialize<T>(evt);
+			Console.WriteLine(eventAsJson.ToString());
 			var eventAsDoc = Document.FromJson(eventAsJson);
 			var eventAsAttributes = eventAsDoc.ToAttributeMap();
+
 
 			var appendEventRequest = new PutItemRequest
 			{
@@ -143,7 +140,6 @@ namespace EventSourcingStore
 			if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
 			{
 				var resultItems = response.Items;
-
 				var result = new List<T>();
 				foreach (var item in resultItems)
 				{
@@ -151,6 +147,12 @@ namespace EventSourcingStore
 					if (!evt.IsError)
 					{
 						result.Add(evt.Value);
+					}
+					else
+					{
+						Console.WriteLine("----------------------------");
+						Console.WriteLine(evt.Errors.First());
+						Console.WriteLine("----------------------------");
 					}
 				}
 

@@ -20,11 +20,14 @@ public record LocaleItemCreationRequest
 
 public record LocaleItemUpdateRequest
 (
-	string? Lang,
+	[Required]
+	string Lang,
 
-	string? Content,
+	[Required]
+	string Content,
 
-	string? Context,
+	[Required]
+	string Context,
 
 	[Required]
 	string UserId,

@@ -12,38 +12,37 @@ public class StoreEvent
 	public string AggregateId { get; set; } = "";
 	[JsonPropertyName("createdAt")]
 	public DateTime CreatedAt { get; protected set; }
-	[JsonPropertyName("type")]
-	public string Type { get; protected set; } = "NO-TYPE";
+	[JsonPropertyName("eventType")]
+	public string EventType { get; protected set; } = "NO-TYPE";
 
-	public StoreEvent()
+	public StoreEvent(string eventType)
 	{
 		this.Id = Guid.NewGuid().ToString();
 		this.CreatedAt = DateTime.UtcNow;
-		if (String.IsNullOrEmpty(this.AggregateId))
-		{
-			this.AggregateId = Guid.NewGuid().ToString();
-		}
+		this.AggregateId = Guid.NewGuid().ToString();
+		this.EventType = eventType;
 	}
 
-	public StoreEvent(string aggregateId)
+	public StoreEvent(string eventType, string aggregateId)
 	{
 		this.Id = Guid.NewGuid().ToString();
 		this.CreatedAt = DateTime.UtcNow;
 		this.AggregateId = aggregateId;
+		this.EventType = eventType;
 	}
 
 	[JsonConstructor]
-	private StoreEvent(string id, DateTime createdAt, string aggregateId, string type)
+	public StoreEvent(string id, DateTime createdAt, string aggregateId, string eventType)
 	{
 		this.Id = id;
 		this.CreatedAt = createdAt;
 		this.AggregateId = aggregateId;
-		this.Type = type;
+		this.EventType = eventType;
 	}
 
 	override public string ToString()
 	{
-		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt} - type: {Type}";
+		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt} - type: {EventType}";
 	}
 }
 

@@ -12,16 +12,22 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		public const string TranslationItemUpdated = "TRANSLATION_ITEM_UPDATED";
 	}
 
-	[JsonDerivedType(typeof(BaseLocalePersistenceEvent), typeDiscriminator: "base")]
-	[JsonDerivedType(typeof(LocaleItemCreationEvent), typeDiscriminator: "LocaleItemCreationEvent")]
-	[JsonDerivedType(typeof(LocaleItemUpdateEvent), typeDiscriminator: "LocaleItemUpdateEvent")]
+	[JsonDerivedType(typeof(BaseLocalePersistenceEvent))]
+	[JsonDerivedType(typeof(LocaleItemCreationEvent))]
+	[JsonDerivedType(typeof(LocaleItemUpdateEvent))]
 	public class BaseLocalePersistenceEvent : StoreEvent
 	{
-		public string Lang;
-		public string Content;
-		public string UserId;
+		[JsonPropertyOrder(-1)]
+		[JsonPropertyName("$type")]
+		public string TypeDiscriminator => GetType().Name;
+		[JsonPropertyName("lang")]
+		public string Lang { get; set; }
+		[JsonPropertyName("content")]
+		public string Content { get; set; }
+		[JsonPropertyName("userId")]
+		public string UserId { get; set; }
 
-		public BaseLocalePersistenceEvent()
+		public BaseLocalePersistenceEvent(string eventType) : base(eventType)
 		{
 			Lang = "no-lang";
 			Content = "no-content";
@@ -29,21 +35,197 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		}
 
 		public BaseLocalePersistenceEvent(
+			string eventType,
 			string lang,
 			string content,
-			string userId,
-			string? aggreateId
-		) : base()
+			string userId
+		) : base(eventType)
 		{
 			Lang = lang;
 			Content = content;
 			UserId = userId;
-			if (aggreateId is not null)
-			{
-				AggregateId = aggreateId;
-			}
+		}
+
+		public BaseLocalePersistenceEvent(
+			string eventType,
+			string lang,
+			string content,
+			string userId,
+			string aggregateId
+		) : base(eventType, aggregateId)
+		{
+			Lang = lang;
+			Content = content;
+			UserId = userId;
+		}
+
+		[JsonConstructor]
+		public BaseLocalePersistenceEvent(
+					string id,
+					DateTime createdAt,
+					string? aggregateId,
+					string eventType,
+					string lang,
+					string content,
+					string userId
+					) : base(id, createdAt, aggregateId ?? "", eventType)
+		{
+			Lang = lang;
+			Content = content;
+			UserId = userId;
 		}
 	}
+
+
+
+
+	public abstract class LocaleItemPersistenceEvent : BaseLocalePersistenceEvent
+	{
+		[JsonPropertyName("context")]
+		public string Context { get; set; }
+
+		public LocaleItemPersistenceEvent(
+			string eventType,
+			string lang,
+			string content,
+			string userId,
+			string context,
+			string? aggreateId
+		) : base(
+			eventType,
+			lang,
+			content,
+			userId,
+			aggreateId
+		)
+		{
+			Context = context;
+		}
+
+
+		[JsonConstructor]
+		public LocaleItemPersistenceEvent(
+					string id,
+					DateTime createdAt,
+					string aggreateId,
+					string eventType,
+					string lang,
+					string content,
+					string userId,
+					string context
+				) : base(
+					id,
+					createdAt,
+					aggreateId,
+					eventType,
+					lang,
+					content,
+					userId
+				)
+		{
+			Context = context;
+		}
+	};
+
+	public class LocaleItemCreationEvent : LocaleItemPersistenceEvent
+	{
+		public LocaleItemCreationEvent(
+			string lang,
+			string content,
+			string userId,
+			string context
+		) : base(
+			LocaleItemEventTypes.LocaleItemAdded,
+			lang,
+			content,
+			userId,
+			context,
+			Guid.NewGuid().ToString()
+		)
+		{
+		}
+
+		[JsonConstructor]
+		public LocaleItemCreationEvent(
+					string id,
+					DateTime createdAt,
+					string aggregateId,
+					string eventType,
+					string lang,
+					string content,
+					string userId,
+					string context
+				) : base(
+					id,
+					createdAt,
+					aggregateId,
+					eventType,
+					lang,
+					content,
+					userId,
+					context
+				)
+		{
+		}
+	};
+
+	public class LocaleItemUpdateEvent : LocaleItemPersistenceEvent
+	{
+		public LocaleItemUpdateEvent(
+			string eventType,
+			string lang,
+			string content,
+			string userId,
+			string context,
+			string aggreateId
+		) : base(
+			LocaleItemEventTypes.LocaleItemUpdated,
+			lang,
+			content,
+			userId,
+			context,
+			aggreateId
+		)
+		{
+		}
+
+		[JsonConstructor]
+		public LocaleItemUpdateEvent(
+			string id,
+			DateTime createdAt,
+			string aggregateId,
+			string eventType,
+			string lang,
+			string content,
+			string userId,
+			string context
+		) : base(
+			id,
+			createdAt,
+			aggregateId,
+			eventType,
+			lang,
+			content,
+			userId,
+			context
+		)
+		{
+		}
+
+		override public string ToString()
+		{
+			return $"{base.ToString()} content: {this.Content} context: {this.Context}";
+		}
+
+	};
+
+
+
+
+
+
+
+
 
 
 	public class TranslationItemCreationEvent : BaseLocalePersistenceEvent
@@ -60,7 +242,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			null
 		)
 		{
-			Type = LocaleItemEventTypes.TranslationItemAdded;
+			EventType = LocaleItemEventTypes.TranslationItemAdded;
 		}
 	};
 
@@ -77,85 +259,9 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			null
 		)
 		{
-			Type = LocaleItemEventTypes.TranslationItemUpdated;
+			EventType = LocaleItemEventTypes.TranslationItemUpdated;
 		}
 	};
 
-	public class TranslationItemDeleteEvent : StoreEvent
-	{
-	};
-
-
-
-
-	public abstract class LocaleItemPersistenceEvent : BaseLocalePersistenceEvent
-	{
-		public string Context;
-
-		public LocaleItemPersistenceEvent(
-			string lang,
-			string content,
-			string userId,
-			string context,
-			string? aggreateId
-		) : base(
-			lang,
-			content,
-			userId,
-			aggreateId
-		)
-		{
-			Context = context;
-		}
-	};
-
-	public class LocaleItemCreationEvent : LocaleItemPersistenceEvent
-	{
-		public LocaleItemCreationEvent(
-			string lang,
-			string content,
-			string userId,
-			string context
-		) : base(
-			lang,
-			content,
-			userId,
-			context,
-			Guid.NewGuid().ToString()
-		)
-		{
-			Type = LocaleItemEventTypes.LocaleItemAdded;
-		}
-	};
-
-	public class LocaleItemUpdateEvent : LocaleItemPersistenceEvent
-	{
-		public LocaleItemUpdateEvent(
-			string lang,
-			string content,
-			string userId,
-			string context,
-			string aggreateId
-		) : base(
-			lang,
-			content,
-			userId,
-			context,
-			aggreateId
-		)
-		{
-			Type = LocaleItemEventTypes.LocaleItemUpdated;
-		}
-
-		override public string ToString()
-		{
-			return $"{base.ToString()} content: {this.Content} context: {this.Context}";
-		}
-
-	};
-
-	public class LocaleItemDeleteEvent : StoreEvent
-	{
-	};
 }
 

@@ -47,10 +47,12 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 		switch (evt)
 		{
 			case LocaleItemCreationEvent localeitemCreated:
+				Console.WriteLine("====== created");
 				Apply(localeitemCreated);
 				break;
 
 			case LocaleItemUpdateEvent localeitemUpdated:
+				Console.WriteLine("====== updated");
 				Apply(localeitemUpdated);
 				break;
 
@@ -61,6 +63,11 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 			case TranslationItemUpdateEvent traslationUpdated:
 				Apply(traslationUpdated);
 				break;
+
+			case BaseLocalePersistenceEvent basevt:
+				Console.WriteLine("-----errorerere ererer---");
+				Console.WriteLine(basevt);
+				break;
 		}
 	}
 
@@ -69,6 +76,8 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 	{
 		foreach (var e in evts)
 		{
+
+			Console.WriteLine(e);
 			Apply(e);
 		}
 	}
