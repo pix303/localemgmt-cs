@@ -5,7 +5,7 @@ namespace EventSourcingStore;
 public class InMemoryEventStore : IEventStore
 {
 
-	private List<StoreEvent> _eventList = new();
+	private List<StoreEvent> _eventList = null!;
 
 	public string GetTableName()
 	{
@@ -19,20 +19,38 @@ public class InMemoryEventStore : IEventStore
 		return Task.FromResult(se.ToErrorOr());
 	}
 
-	public Task<ErrorOr<T?>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent
+	public async Task<ErrorOr<T>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent
 	{
+		await Task.CompletedTask;
 		var result = _eventList.Find(item => item.AggregateId == aggregateId && item.CreatedAt == cratedAt) as T;
-		return Task.FromResult(result.ToErrorOr());
+		if (result is null)
+		{
+			var err = ErrorOr.Error.NotFound();
+			return err;
+		}
+		return result;
 	}
 
-	public Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent
+	public async Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent
 	{
+		await Task.CompletedTask;
 		var result = _eventList.FindAll(item => item.AggregateId == aggregateId) as List<T>;
 		if (result is not null)
 		{
-			return Task.FromResult(result.ToErrorOr());
+			return result;
 		}
-		return Task.FromResult(new List<T>().ToErrorOr());
+		return new List<T>();
+	}
+
+	public async Task StartAsync(CancellationToken cancellationToken)
+	{
+		_eventList = new();
+		await Task.CompletedTask;
+	}
+
+	public async Task StopAsync(CancellationToken cancellationToken)
+	{
+		await Task.CompletedTask;
 	}
 }
 

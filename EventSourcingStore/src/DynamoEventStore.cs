@@ -43,11 +43,23 @@ namespace EventSourcingStore
 		}
 
 
-		public DynamoDBEventStore(string tableName)
+		public DynamoDBEventStore(string tableName, string? localhost)
 		{
-			_client = new AmazonDynamoDBClient();
+			var opts = new AmazonDynamoDBConfig();
+			if (localhost is not null)
+			{
+				opts.ServiceURL = localhost;
+			}
+			_client = new AmazonDynamoDBClient(opts);
 			_context = new DynamoDBContext(_client);
 			_tableName = tableName;
+		}
+
+		public async Task InitStore()
+		{
+			DynamoEventStoreMigration m = new(_client, _tableName);
+			var result = await m.CreateTableAsync();
+			Console.WriteLine($"db check creation for table {_tableName}: {result}");
 		}
 
 		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
@@ -56,7 +68,6 @@ namespace EventSourcingStore
 			Console.WriteLine(eventAsJson.ToString());
 			var eventAsDoc = Document.FromJson(eventAsJson);
 			var eventAsAttributes = eventAsDoc.ToAttributeMap();
-
 
 			var appendEventRequest = new PutItemRequest
 			{
@@ -160,6 +171,16 @@ namespace EventSourcingStore
 			}
 
 			return Error.Unexpected(code: response.HttpStatusCode.ToString(), description: "Retriving event from store");
+		}
+
+		public async Task StartAsync(CancellationToken cancellationToken)
+		{
+			await InitStore();
+		}
+
+		public async Task StopAsync(CancellationToken cancellationToken)
+		{
+			await Task.CompletedTask;
 		}
 	}
 }

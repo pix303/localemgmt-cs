@@ -7,7 +7,7 @@ json_data=$(
     "content": "ciao amore 34535",
     "context": "app",
     "userId": "0",
-    "aggregateId": "5f0004cb-8b2f-4a6e-98c8-a3bcbf2349d2"
+    "aggregateId": "0f3d8c94-5bca-43bd-a6dc-e4dcf02482dc"
 }
 EOF
 )
@@ -25,7 +25,7 @@ json_data=$(
     "content": "ciao amore 88",
     "context": "appero",
     "userId": "0",
-    "aggregateId": "5f0004cb-8b2f-4a6e-98c8-a3bcbf2349d2"
+    "aggregateId": "0f3d8c94-5bca-43bd-a6dc-e4dcf02482dc"
 }
 EOF
 )

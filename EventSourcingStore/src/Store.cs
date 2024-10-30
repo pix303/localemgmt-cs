@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using ErrorOr;
+using Microsoft.Extensions.Hosting;
+
 
 namespace EventSourcingStore;
 
@@ -48,7 +50,7 @@ public class StoreEvent
 
 
 
-public interface IEventStore
+public interface IEventStore : IHostedService
 {
 	Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent;
 	Task<ErrorOr<T>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent;
