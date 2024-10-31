@@ -5,7 +5,7 @@ using EventSourcingStore;
 
 namespace Localemgmt.Domain.Test;
 
-public class LocaleItemsTest
+public class LocaleItemsUnitTest
 {
 	[Fact]
 	public void TranslationItemsProjections_should_update()
@@ -54,7 +54,7 @@ public class LocaleItemsTest
 		TranslationItemUpdateEvent tiUpdateEventB = new("fr", "c'est un test modifié", user);
 		TranslationItemUpdateEvent tiUpdateEvent2B = new("fr", lastContent, user);
 
-		IList<StoreEvent> events = [
+		IList<BaseLocalePersistenceEvent> events = [
 			creationEvent,
 			updateEvent,
 			updateEvent2,

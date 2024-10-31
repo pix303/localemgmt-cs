@@ -3,7 +3,7 @@ using Localemgmt.Contracts.LocaleItem;
 
 namespace Localemgmt.Application.LocaleItem.Validators;
 
-public class AddLocaleItemRequestValidator : AbstractValidator<LocaleItemMutationRequest>
+public class AddLocaleItemRequestValidator : AbstractValidator<LocaleItemCreationRequest>
 {
 	public AddLocaleItemRequestValidator()
 	{

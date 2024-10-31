@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Localemgmt.Contracts.LocaleItem;
 
-public record LocaleItemMutationRequest
+public record LocaleItemCreationRequest
 (
 	[Required, MinLength(2), MaxLength(6)]
 	string Lang,
@@ -17,4 +17,23 @@ public record LocaleItemMutationRequest
 	string UserId,
 
 	string? AggregateId
+);
+
+
+public record LocaleItemUpdateRequest
+(
+	[Required]
+	string Lang,
+
+	[Required]
+	string Content,
+
+	[Required]
+	string Context,
+
+	[Required]
+	string UserId,
+
+	[Required]
+	string AggregateId
 );

@@ -5,6 +5,8 @@ using EventSourcingStore;
 using Localemgmt.Domain.LocaleItems.Events;
 using Localemgmt.Application.LocaleItem.Validators;
 using FluentValidation;
+using MassTransit;
+using Localemgmt.Api.Consumer;
 
 namespace Localemgmt.Api.Controllers;
 
@@ -14,22 +16,29 @@ public class LocaleItemMutationController : ControllerBase
 {
 	IEventStore _store;
 	ILogger<LocaleItemMutationController> _logger;
+	IPublishEndpoint? _bus;
 
-	public LocaleItemMutationController(IEventStore store, ILogger<LocaleItemMutationController> logger)
+
+	public LocaleItemMutationController(
+		IEventStore store,
+		ILogger<LocaleItemMutationController> logger,
+		IPublishEndpoint? bus
+	)
 	{
 		_store = store;
 		_logger = logger;
+		_bus = bus;
 	}
 
 
 	[HttpPost]
 	[Route("add")]
-	public async Task<IActionResult> Add(LocaleItemMutationRequest request)
+	public async Task<IActionResult> Add(LocaleItemCreationRequest request)
 	{
 		_logger.LogInformation("Adding locale item by request {}", request);
 
 		// event validation
-		var validationError = Validate(new AddLocaleItemRequestValidator(), request);
+		var validationError = Validate<LocaleItemCreationRequest>(new AddLocaleItemRequestValidator(), request);
 		if (validationError is not null)
 		{
 			_logger.LogError("Error on validation {}", validationError);
@@ -38,24 +47,35 @@ public class LocaleItemMutationController : ControllerBase
 
 		// event persistence
 		var e = request.Adapt<LocaleItemCreationEvent>();
-		var result = await _store.Append(e);
-		return result.Match(
-			value =>
-			{
-				_logger.LogInformation("Added locale item with id {}", value.AggregateId);
-				return Ok(new LocaleItemMutationResponse(value.AggregateId));
-			},
-			err => Problem(err.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error")
-	  );
+		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
+
+		if (result.IsError)
+		{
+			return Problem(result.Errors.First().Description, null, StatusCodes.Status500InternalServerError);
+		}
+
+		var aggregateId = result.Value.AggregateId;
+		if (aggregateId is null)
+		{
+			return Problem("aggregateId cant be null", null, StatusCodes.Status500InternalServerError);
+		}
+
+		if (_bus is not null)
+		{
+			var msg = new ProjectionMessage(aggregateId);
+			await _bus.Publish(msg);
+		}
+
+		return Ok(new LocaleItemMutationResponse(aggregateId));
 	}
 
 
 	[HttpPost]
 	[Route("update")]
-	public async Task<IActionResult> Update(LocaleItemMutationRequest request)
+	public async Task<IActionResult> Update(LocaleItemUpdateRequest request)
 	{
 		// event validation
-		var validationError = Validate(new UpdateLocaleItemRequestValidator(), request);
+		var validationError = Validate<LocaleItemUpdateRequest>(new UpdateLocaleItemRequestValidator(), request);
 		if (validationError is not null)
 		{
 			return validationError;
@@ -63,15 +83,28 @@ public class LocaleItemMutationController : ControllerBase
 
 		// event persistence
 		var e = request.Adapt<LocaleItemUpdateEvent>();
-		var result = await _store.Append(e);
-		return result.Match(
-			value => Ok(new LocaleItemMutationResponse(value.AggregateId)),
-			err => Problem(err.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error")
-	  );
+		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
+		if (result.IsError)
+		{
+			return Problem(result.Errors.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error");
+		}
+
+		var aggregateId = result.Value.AggregateId;
+		if (aggregateId != request.AggregateId)
+		{
+			return Problem("aggregate id incoherence", null, StatusCodes.Status500InternalServerError, "Internal server error");
+		}
+
+		var msg = new ProjectionMessage(aggregateId);
+		if (_bus is not null)
+		{
+			await _bus.Publish(msg);
+		}
+		return Ok(new LocaleItemMutationResponse(aggregateId));
 	}
 
 
-	private ObjectResult? Validate(IValidator<LocaleItemMutationRequest> validator, LocaleItemMutationRequest request)
+	private ObjectResult? Validate<T>(IValidator<T> validator, T request)
 	{
 		// event validation
 		var validation = validator.Validate(request);

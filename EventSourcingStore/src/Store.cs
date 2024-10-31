@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using ErrorOr;
+using Microsoft.Extensions.Hosting;
+
 
 namespace EventSourcingStore;
 
@@ -12,44 +14,47 @@ public class StoreEvent
 	public string AggregateId { get; set; } = "";
 	[JsonPropertyName("createdAt")]
 	public DateTime CreatedAt { get; protected set; }
-	[JsonPropertyName("type")]
-	public string Type { get; protected set; } = "NO-TYPE";
+	[JsonPropertyName("eventType")]
+	public string EventType { get; protected set; } = "NO-TYPE";
 
-	public StoreEvent()
-	{
-		Id = "";
-		this.InitEvent();
-	}
-
-	override public string ToString()
-	{
-		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt}";
-	}
-
-	public void InitEvent()
+	public StoreEvent(string eventType)
 	{
 		this.Id = Guid.NewGuid().ToString();
 		this.CreatedAt = DateTime.UtcNow;
-		if (this.AggregateId is null)
-		{
-			this.AggregateId = Guid.NewGuid().ToString();
-		}
+		this.AggregateId = Guid.NewGuid().ToString();
+		this.EventType = eventType;
 	}
 
-	public void InitEvent(string id, DateTime createdAt, string aggregateId)
+	public StoreEvent(string eventType, string aggregateId)
+	{
+		this.Id = Guid.NewGuid().ToString();
+		this.CreatedAt = DateTime.UtcNow;
+		this.AggregateId = aggregateId;
+		this.EventType = eventType;
+	}
+
+	[JsonConstructor]
+	public StoreEvent(string id, DateTime createdAt, string aggregateId, string eventType)
 	{
 		this.Id = id;
 		this.CreatedAt = createdAt;
 		this.AggregateId = aggregateId;
+		this.EventType = eventType;
 	}
 
+	override public string ToString()
+	{
+		return $"id: {Id} - aggregateId: {AggregateId} - createdAt: {CreatedAt} - type: {EventType}";
+	}
 }
 
-public interface IEventStore
+
+
+public interface IEventStore : IHostedService
 {
 	Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent;
-	Task<ErrorOr<StoreEvent?>> Retrive(string aggregateId, DateTime cratedAt);
-	Task<ErrorOr<List<StoreEvent>>> RetriveByAggregate(string aggregateId);
+	Task<ErrorOr<T>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent;
+	Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent;
 	string GetTableName();
 }
 

@@ -51,14 +51,13 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     [Fact]
     public async void AddItem_BadRequest()
     {
-        LocaleItemMutationRequest request = new(
+        LocaleItemCreationRequest request = new(
             Lang: "",
             Content: _baseContent,
             Context: _context,
-            UserId: _userId,
-            AggregateId: null
+            UserId: _userId
         );
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var controller = FactoryController();
         var result = await controller.Add(request);
         AssertBadRequest(result, "Lang");
     }
@@ -66,14 +65,13 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     [Fact]
     public async void AddItem_BadRequest2()
     {
-        LocaleItemMutationRequest request = new(
+        LocaleItemCreationRequest request = new(
             Lang: _lang,
             Content: "",
             Context: _context,
-            UserId: _userId,
-            AggregateId: null
+            UserId: _userId
         );
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var controller = FactoryController();
         var result = await controller.Add(request);
         AssertBadRequest(result, "Content");
     }
@@ -81,14 +79,13 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     [Fact]
     public async void AddItem_BadRequest3()
     {
-        LocaleItemMutationRequest request = new(
+        LocaleItemCreationRequest request = new(
             Lang: _lang,
             Content: _baseContent,
             Context: "",
-            UserId: _userId,
-            AggregateId: null
+            UserId: _userId
         );
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
+        var controller = FactoryController();
         var result = await controller.Add(request);
         AssertBadRequest(result, "Context");
     }
@@ -96,13 +93,12 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     [Fact]
     public async void AddItem_BadRequest4()
     {
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
-        LocaleItemMutationRequest request = new(
+        var controller = FactoryController();
+        LocaleItemCreationRequest request = new(
             Lang: "",
             Content: "",
             Context: "",
-            UserId: "",
-            AggregateId: null
+            UserId: ""
         );
         var result = await controller.Add(request);
         AssertBadRequest(result, "Lang");
@@ -114,14 +110,15 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     {
         var aggregateId = await InternalAdd();
 
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
-        LocaleItemMutationRequest request = new(
+        LocaleItemUpdateRequest request = new(
             Lang: _lang,
             Content: _baseContent,
             Context: _context,
             UserId: _userId,
-            AggregateId: aggregateId);
+            AggregateId: aggregateId
+            );
 
+        var controller = FactoryController();
         var result = await controller.Update(request);
         var okResult = Assert.IsAssignableFrom<OkObjectResult>(result);
         Assert.NotNull(okResult);
@@ -137,31 +134,32 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
     {
         var aggregateId = await InternalAdd();
 
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
-        LocaleItemMutationRequest request = new(
-            Lang: _lang,
-            Content: _baseContent,
-            Context: _context,
-            UserId: _userId,
-            AggregateId: null
-            );
+        var controller = FactoryController();
+        LocaleItemUpdateRequest request = new(
+                    Lang: _lang,
+                    Content: _baseContent,
+                    Context: _context,
+                    UserId: _userId,
+                    AggregateId: ""
+                    );
 
         var result = await controller.Update(request);
-        AssertBadRequest(result, "required");
+        AssertBadRequest(result, "not be empty");
     }
+
 
     [Fact]
     public async void UpdateItem_BadRequest2()
     {
         var aggregateId = await InternalAdd();
 
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
-        LocaleItemMutationRequest request = new(
+        var controller = FactoryController();
+        LocaleItemUpdateRequest request = new(
             Lang: _lang,
             Content: _baseContent,
             Context: _context,
             UserId: _userId,
-            AggregateId: ""
+            AggregateId: "-"
         );
 
         var result = await controller.Update(request);
@@ -171,13 +169,12 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
 
     private async Task<string> InternalAdd()
     {
-        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger);
-        LocaleItemMutationRequest request = new(
+        var controller = FactoryController();
+        LocaleItemCreationRequest request = new(
             Lang: _lang,
             Content: _baseContent,
             Context: _context,
-            UserId: _userId,
-            AggregateId: null
+            UserId: _userId
         );
 
         var result = await controller.Add(request);
@@ -200,5 +197,12 @@ public class LocaleItemControllerApiUnitTest : IClassFixture<StoreFixture>
         Assert.NotNull(problemDetails.Detail);
         Assert.NotEmpty(problemDetails.Detail);
         Assert.Contains(descriptionPart, problemDetails.Detail);
+    }
+
+
+    private LocaleItemMutationController FactoryController()
+    {
+        var controller = new LocaleItemMutationController(_fixture.store, _fixture.logger, null);
+        return controller;
     }
 }
