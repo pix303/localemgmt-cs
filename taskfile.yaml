@@ -12,3 +12,8 @@ tasks:
    cmds:
    - clear
    - "dotnet run --project Localemgmt.Api"
+ req:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/additem.sh
+   - ./Requests/LocaleItem/updateItem.sh
