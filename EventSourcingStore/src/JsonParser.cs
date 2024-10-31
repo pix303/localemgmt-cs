@@ -13,7 +13,10 @@ public static class JsonParser
 		{
 			var opt = new JsonSerializerOptions
 			{
-				TypeInfoResolver = new PolymorphicTypeResolver(typeof(T), derivedTypes),
+				// TypeInfoResolver = new PolymorphicTypeResolver(typeof(T), derivedTypes),
+				IncludeFields = true,
+				PropertyNameCaseInsensitive = false,
+				AllowOutOfOrderMetadataProperties = true
 			};
 
 			Console.WriteLine("-------------------------------------");
