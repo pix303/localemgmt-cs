@@ -13,7 +13,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 
 	private void Apply(LocaleItemCreationEvent evt)
 	{
-		BaseLocalePersistenceEvent e = new(evt.Lang, evt.Content, evt.UserId, evt.AggregateId);
+		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId);
 		base.Create(e);
 		Context = evt.Context;
 		IsLangReference = true;
@@ -21,7 +21,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 
 	private void Apply(LocaleItemUpdateEvent evt)
 	{
-		BaseLocalePersistenceEvent e = new(evt.Lang, evt.Content, evt.UserId, evt.AggregateId);
+		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId);
 		base.Update(e);
 		Context = evt.Context;
 	}
@@ -47,12 +47,10 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 		switch (evt)
 		{
 			case LocaleItemCreationEvent localeitemCreated:
-				Console.WriteLine("====== created");
 				Apply(localeitemCreated);
 				break;
 
 			case LocaleItemUpdateEvent localeitemUpdated:
-				Console.WriteLine("====== updated");
 				Apply(localeitemUpdated);
 				break;
 
@@ -62,11 +60,6 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 
 			case TranslationItemUpdateEvent traslationUpdated:
 				Apply(traslationUpdated);
-				break;
-
-			case BaseLocalePersistenceEvent basevt:
-				Console.WriteLine("-----errorerere ererer---");
-				Console.WriteLine(basevt);
 				break;
 		}
 	}
@@ -78,5 +71,11 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 		{
 			Apply(e);
 		}
+	}
+
+
+	public override string ToString()
+	{
+		return $"context: {this.Context} - lang: {this.Lang} - content: {this.Content} - creato il: {this.CreatedAt} - da: {this.CreatedBy}";
 	}
 }

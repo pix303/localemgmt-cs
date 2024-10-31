@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization.Metadata;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
@@ -21,11 +20,11 @@ namespace EventSourcingStore
 
 	public static class DynamoDBStoreEvent
 	{
-		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item, IList<JsonDerivedType> derivedTypes)
+		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item)
 		{
 			var eventDoc = Document.FromAttributeMap(item);
 			var evtJson = eventDoc.ToJson();
-			var evt = JsonParser.Deserialize<T>(evtJson, derivedTypes);
+			var evt = JsonParser.Deserialize<T>(evtJson);
 			return evt;
 		}
 	}
@@ -36,7 +35,6 @@ namespace EventSourcingStore
 		private readonly AmazonDynamoDBClient _client;
 		private readonly DynamoDBContext _context;
 		private readonly string _tableName;
-		private readonly IList<JsonDerivedType> _derivedTypes;
 
 		public string GetTableName()
 		{
@@ -44,7 +42,7 @@ namespace EventSourcingStore
 		}
 
 
-		public DynamoDBEventStore(string tableName, string? localhost, IList<JsonDerivedType> derivedTypes)
+		public DynamoDBEventStore(string tableName, string? localhost)
 		{
 			var opts = new AmazonDynamoDBConfig();
 			if (localhost is not null)
@@ -54,7 +52,6 @@ namespace EventSourcingStore
 			_client = new AmazonDynamoDBClient(opts);
 			_context = new DynamoDBContext(_client);
 			_tableName = tableName;
-			_derivedTypes = derivedTypes;
 		}
 
 		public async Task InitStore()
@@ -122,7 +119,7 @@ namespace EventSourcingStore
 
 				if (resultItem is not null && resultItem.Count > 0)
 				{
-					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(resultItem, _derivedTypes);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(resultItem);
 					return evt;
 				}
 				else
@@ -160,16 +157,14 @@ namespace EventSourcingStore
 				var result = new List<T>();
 				foreach (var item in resultItems)
 				{
-					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(item, _derivedTypes);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(item);
 					if (!evt.IsError)
 					{
 						result.Add(evt.Value);
 					}
 					else
 					{
-						Console.WriteLine("----------------------------");
 						Console.WriteLine(evt.Errors.First());
-						Console.WriteLine("----------------------------");
 					}
 				}
 

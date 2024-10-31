@@ -12,12 +12,12 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		public const string TranslationItemAdded = "TRANSLATION_ITEM_ADDED";
 		public const string TranslationItemUpdated = "TRANSLATION_ITEM_UPDATED";
 
-		public static List<JsonDerivedType> DerivatedTypes = new()
-		{
-			new JsonDerivedType(typeof(BaseLocalePersistenceEvent),"BaseLocalePersistenceEvent"),
-			new JsonDerivedType(typeof(LocaleItemCreationEvent),"LocaleItemCreationEvent"),
-			new JsonDerivedType(typeof(LocaleItemUpdateEvent),"LocaleItemUpdateEvent"),
-		};
+		// public static List<JsonDerivedType> DerivatedTypes = new()
+		// {
+		// 	new JsonDerivedType(typeof(BaseLocalePersistenceEvent),"BaseLocalePersistenceEvent"),
+		// 	new JsonDerivedType(typeof(LocaleItemCreationEvent),"LocaleItemCreationEvent"),
+		// 	new JsonDerivedType(typeof(LocaleItemUpdateEvent),"LocaleItemUpdateEvent"),
+		// };
 	}
 
 

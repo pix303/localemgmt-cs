@@ -4,10 +4,10 @@ json_data=$(
   cat <<EOF
 {
     "lang": "it",
-    "content": "ciao amore 34535",
+    "content": "questo ultimo inserimento in update",
     "context": "app",
     "userId": "0",
-    "aggregateId": "0f3d8c94-5bca-43bd-a6dc-e4dcf02482dc"
+    "aggregateId": "f8435090-b708-4e21-b22a-f39b2b04f1a2"
 }
 EOF
 )
@@ -22,10 +22,10 @@ json_data=$(
   cat <<EOF
 {
     "lang": "it",
-    "content": "ciao amore 88",
+    "content": "questo veramente ultimo inserimento in update",
     "context": "appero",
     "userId": "0",
-    "aggregateId": "0f3d8c94-5bca-43bd-a6dc-e4dcf02482dc"
+    "aggregateId": "f8435090-b708-4e21-b22a-f39b2b04f1a2"
 }
 EOF
 )

@@ -58,7 +58,7 @@ public class ProjectionConsumer : IConsumer<Batch<ProjectionMessage>>
 				var evtList = result.Value;
 				var localeItem = new LocaleItem();
 				localeItem.Reduce(evtList);
-				_logger.LogWarning(localeItem.Content);
+				_logger.LogInformation(localeItem.ToString());
 			}
 		}
 	}
