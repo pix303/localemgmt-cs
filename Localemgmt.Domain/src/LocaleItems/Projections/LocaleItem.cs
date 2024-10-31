@@ -76,8 +76,6 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 	{
 		foreach (var e in evts)
 		{
-
-			Console.WriteLine(e);
 			Apply(e);
 		}
 	}

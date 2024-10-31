@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Localemgmt.Application\Localemgmt.Application.csproj" />
+    <ProjectReference Include="..\Localemgmt.Domain\Localemgmt.Domain.csproj" />
     <ProjectReference Include="..\EventSourcingStore\EventSourcingStore.csproj" />
   </ItemGroup>
 

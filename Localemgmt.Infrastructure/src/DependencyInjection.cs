@@ -4,7 +4,7 @@ using Localemgmt.Infrastructure.Repositories.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-
+using Localemgmt.Domain.LocaleItems.Events;
 
 namespace Localemgmt.Infrastructure;
 
@@ -20,7 +20,7 @@ public static class DependencyInjection
 			var config = serviceProvider.GetRequiredService<IConfiguration>();
 			var tablename = config.GetSection("Store:TableName").Value;
 			var localhost = config.GetSection("Store:localhost").Value;
-			return new DynamoDBEventStore(tablename ?? "no-table-name", localhost);
+			return new DynamoDBEventStore(tablename ?? "no-table-name", localhost, LocaleItemEventTypes.DerivatedTypes);
 		});
 
 		// register as service for controller and projection consumers

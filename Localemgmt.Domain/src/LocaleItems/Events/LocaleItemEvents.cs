@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using EventSourcingStore;
 
 namespace Localemgmt.Domain.LocaleItems.Events
@@ -10,16 +11,25 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		public const string LocaleItemUpdated = "LOCALE_ITEM_UPDATED";
 		public const string TranslationItemAdded = "TRANSLATION_ITEM_ADDED";
 		public const string TranslationItemUpdated = "TRANSLATION_ITEM_UPDATED";
+
+		public static List<JsonDerivedType> DerivatedTypes = new()
+		{
+			new JsonDerivedType(typeof(BaseLocalePersistenceEvent),"BaseLocalePersistenceEvent"),
+			new JsonDerivedType(typeof(LocaleItemCreationEvent),"LocaleItemCreationEvent"),
+			new JsonDerivedType(typeof(LocaleItemUpdateEvent),"LocaleItemUpdateEvent"),
+		};
 	}
 
-	[JsonDerivedType(typeof(BaseLocalePersistenceEvent))]
-	[JsonDerivedType(typeof(LocaleItemCreationEvent))]
-	[JsonDerivedType(typeof(LocaleItemUpdateEvent))]
+
+	[JsonPolymorphic]
+	[JsonDerivedType(typeof(BaseLocalePersistenceEvent), "BaseLocalePersistenceEvent")]
+	[JsonDerivedType(typeof(LocaleItemCreationEvent), "LocaleItemCreationEvent")]
+	[JsonDerivedType(typeof(LocaleItemUpdateEvent), "LocaleItemUpdateEvent")]
 	public class BaseLocalePersistenceEvent : StoreEvent
 	{
-		[JsonPropertyOrder(-1)]
 		[JsonPropertyName("$type")]
 		public string TypeDiscriminator => GetType().Name;
+
 		[JsonPropertyName("lang")]
 		public string Lang { get; set; }
 		[JsonPropertyName("content")]

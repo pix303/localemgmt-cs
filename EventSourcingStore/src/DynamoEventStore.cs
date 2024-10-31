@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
@@ -21,11 +21,11 @@ namespace EventSourcingStore
 
 	public static class DynamoDBStoreEvent
 	{
-		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item)
+		public static ErrorOr<T> InitFromDynamoDBResult<T>(Dictionary<string, AttributeValue> item, IList<JsonDerivedType> derivedTypes)
 		{
 			var eventDoc = Document.FromAttributeMap(item);
 			var evtJson = eventDoc.ToJson();
-			var evt = JsonParser.Deserialize<T>(evtJson);
+			var evt = JsonParser.Deserialize<T>(evtJson, derivedTypes);
 			return evt;
 		}
 	}
@@ -36,6 +36,7 @@ namespace EventSourcingStore
 		private readonly AmazonDynamoDBClient _client;
 		private readonly DynamoDBContext _context;
 		private readonly string _tableName;
+		private readonly IList<JsonDerivedType> _derivedTypes;
 
 		public string GetTableName()
 		{
@@ -43,7 +44,7 @@ namespace EventSourcingStore
 		}
 
 
-		public DynamoDBEventStore(string tableName, string? localhost)
+		public DynamoDBEventStore(string tableName, string? localhost, IList<JsonDerivedType> derivedTypes)
 		{
 			var opts = new AmazonDynamoDBConfig();
 			if (localhost is not null)
@@ -53,6 +54,7 @@ namespace EventSourcingStore
 			_client = new AmazonDynamoDBClient(opts);
 			_context = new DynamoDBContext(_client);
 			_tableName = tableName;
+			_derivedTypes = derivedTypes;
 		}
 
 		public async Task InitStore()
@@ -64,9 +66,13 @@ namespace EventSourcingStore
 
 		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 		{
-			var eventAsJson = JsonSerializer.Serialize<T>(evt);
-			Console.WriteLine(eventAsJson.ToString());
-			var eventAsDoc = Document.FromJson(eventAsJson);
+			var eventAsJson = JsonParser.Serialize(evt);
+			if (eventAsJson.IsError)
+			{
+				return Error.Unexpected(description: "Error on serialize event");
+			}
+
+			var eventAsDoc = Document.FromJson(eventAsJson.Value);
 			var eventAsAttributes = eventAsDoc.ToAttributeMap();
 
 			var appendEventRequest = new PutItemRequest
@@ -116,7 +122,7 @@ namespace EventSourcingStore
 
 				if (resultItem is not null && resultItem.Count > 0)
 				{
-					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(resultItem);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(resultItem, _derivedTypes);
 					return evt;
 				}
 				else
@@ -154,7 +160,7 @@ namespace EventSourcingStore
 				var result = new List<T>();
 				foreach (var item in resultItems)
 				{
-					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(item);
+					var evt = DynamoDBStoreEvent.InitFromDynamoDBResult<T>(item, _derivedTypes);
 					if (!evt.IsError)
 					{
 						result.Add(evt.Value);
