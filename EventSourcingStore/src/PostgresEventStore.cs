@@ -23,8 +23,9 @@ public class PostgresEventStore : IEventStore
 
 	public async Task InitStore()
 	{
-		var c = await _dbConnector.CreateConnectionAsync();
-		var sqlStatement = $"""
+		using (var c = await _dbConnector.CreateConnectionAsync())
+		{
+			var sqlStatement = $"""
 			CREATE TABLE IF NOT EXISTS public."{_tableName}"
 			(
 			    "id" character varying(64) NOT NULL,
@@ -36,7 +37,8 @@ public class PostgresEventStore : IEventStore
 			)
 			""";
 
-		await c.ExecuteAsync(sqlStatement);
+			await c.ExecuteAsync(sqlStatement);
+		}
 	}
 
 
@@ -46,10 +48,12 @@ public class PostgresEventStore : IEventStore
 		// TODO: handle error
 		evt.Data = data.Value;
 		var s = $"""INSERT INTO "{_tableName}" ("id", "aggregateId", "createdAt", "userId", "eventType","data") VALUES (@Id,@AggregateId,@CreatedAt,@UserId,@EventType,@Data)""";
-		var c = await _dbConnector.CreateConnectionAsync();
-		var result = await c.ExecuteAsync(s, evt);
-		evt.Data = null;
-		return evt;
+		using (var c = await _dbConnector.CreateConnectionAsync())
+		{
+			var result = await c.ExecuteAsync(s, evt);
+			evt.Data = null;
+			return evt;
+		}
 	}
 
 
