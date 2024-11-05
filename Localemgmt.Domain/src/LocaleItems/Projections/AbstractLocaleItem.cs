@@ -6,6 +6,7 @@ namespace Localemgmt.Domain.LocaleItems.Projections;
 public abstract class AbstractLocaleItem
 {
 	public Guid Id { get; set; }
+	public string AggregateId { get; set; } = null!;
 	public string Content { get; set; } = null!;
 	public string Lang { get; set; } = null!;
 	public DateTime? CreatedAt { get; set; } = null!;
@@ -14,14 +15,15 @@ public abstract class AbstractLocaleItem
 	public string UpdatedBy { get; set; } = null!;
 
 
-	protected void Create(BaseLocalePersistenceEvent @event)
+	protected void Create(BaseLocalePersistenceEvent evt)
 	{
 		Id = Guid.NewGuid();
+		AggregateId = evt.AggregateId;
 		CreatedAt = DateTime.UtcNow;
-		CreatedBy = @event.UserId;
+		CreatedBy = evt.UserId;
 
-		Content = @event.Content;
-		Lang = @event.Lang;
+		Content = evt.Content;
+		Lang = evt.Lang;
 	}
 
 	protected void Update(BaseLocalePersistenceEvent @event)

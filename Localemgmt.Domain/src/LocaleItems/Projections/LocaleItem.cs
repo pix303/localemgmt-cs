@@ -13,7 +13,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 
 	private void Apply(LocaleItemCreationEvent evt)
 	{
-		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId);
+		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId, evt.AggregateId);
 		base.Create(e);
 		Context = evt.Context;
 		IsLangReference = true;
@@ -21,7 +21,7 @@ public class LocaleItem : AbstractLocaleItem, IAggregate<BaseLocalePersistenceEv
 
 	private void Apply(LocaleItemUpdateEvent evt)
 	{
-		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId);
+		BaseLocalePersistenceEvent e = new(evt.EventType, evt.Lang, evt.Content, evt.UserId, evt.AggregateId);
 		base.Update(e);
 		Context = evt.Context;
 	}

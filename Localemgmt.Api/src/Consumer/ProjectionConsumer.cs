@@ -10,6 +10,12 @@ public record ProjectionMessage
 	string AggregateId
 );
 
+public record ProjectionUpdateMessage
+(
+	string AggregateId,
+	string Type
+);
+
 public class ProjectionConsumerDefinition : ConsumerDefinition<ProjectionConsumer>
 {
 	public ProjectionConsumerDefinition()
@@ -51,7 +57,7 @@ public class ProjectionConsumer : IConsumer<Batch<ProjectionMessage>>
 			aggregateIds.Add(msg.Message.AggregateId);
 		}
 
-		_logger.LogInformation($"msg {context.Message.Count()} - set {aggregateIds.Count()}");
+		_logger.LogInformation($"message recived: {context.Message.Count()} - num of aggregateIds to process: {aggregateIds.Count()}");
 
 		foreach (var aggregateId in aggregateIds)
 		{
@@ -64,9 +70,19 @@ public class ProjectionConsumer : IConsumer<Batch<ProjectionMessage>>
 			else
 			{
 				var evtList = result.Value;
+				_logger.LogInformation($"process for {aggregateId} {evtList.Count()} events");
+
+				// build aggregate
 				var localeItem = new LocaleItem();
 				localeItem.Reduce(evtList);
 				_logger.LogInformation(localeItem.ToString());
+
+				//create projection
+
+				// send aggregate update
+				var sender = await context.GetSendEndpoint(new Uri("queue:projection"));
+				await sender.Send(new ProjectionUpdateMessage(localeItem.AggregateId, "updateAll"));
+
 			}
 		}
 	}
