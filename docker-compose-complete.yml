@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  localemgmt.dynamodb:
+    image: "amazon/dynamodb-local:latest"
+    container_name: localemgmt-dynamodb
+    user: root
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/dynamodb:/home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    profiles: [ all, dynamodb, default ]
+
+  localemgmt.eventstore:
+    image: eventstore/eventstore:24.2.0-jammy
+    container_name: localemgmt-eventstore
+    environment:
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+      - EVENTSTORE_HTTP_PORT=2113
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+    ports:
+      - "2113:2113"
+      - "1113:1113"
+    volumes:
+      - type: volume
+        source: eventstore-volume-data
+        target: /var/lib/eventstore
+      - type: volume
+        source: eventstore-volume-logs
+        target: /var/log/eventstore
+    profiles: [ all, eventstore ]
+
+  localemgmt.postgres:
+    image: localemgmt/postgres
+    stdin_open: true
+    container_name: localemgmt-postgres
+    tty: true
+    build:
+      context: .
+      dockerfile: ./docker/postgres/postgres.Dockerfile
+    environment:
+      POSTGRES_DB: localemgmt
+      POSTGRES_USER: localemgmt
+      POSTGRES_PASSWORD: localemgmt
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./docker/postgres/00-create_extensions.sql:/docker-entrypoint-initdb.d/00-create_extensions.sql
+      - ./docker/postgres/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./data/postgres:/var/lib/postgresql/data
+
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    profiles: [ all, postgres ]
+
+
+volumes:
+  eventstore-volume-data:
+  eventstore-volume-logs:
