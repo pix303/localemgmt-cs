@@ -30,9 +30,19 @@ builder.Services.AddInfrastructure(dbType);
 builder.Services.AddLogging();
 builder.Services.AddMassTransit(configuration =>
 {
+    configuration.SetKebabCaseEndpointNameFormatter();
     configuration.AddConsumer<ProjectionConsumer, ProjectionConsumerDefinition>();
-    configuration.UsingInMemory((context, cfg) =>
+    // configuration.UsingInMemory((context, cfg) =>
+    // {
+    //     cfg.ConfigureEndpoints(context);
+    // });
+    configuration.UsingRabbitMq((context, cfg) =>
     {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
         cfg.ConfigureEndpoints(context);
     });
 });
