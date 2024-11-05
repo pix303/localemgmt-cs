@@ -37,6 +37,10 @@ namespace Localemgmt.Domain.LocaleItems.Events
 		[JsonPropertyName("userId")]
 		public string UserId { get; set; }
 
+		public BaseLocalePersistenceEvent() : base()
+		{
+		}
+
 		public BaseLocalePersistenceEvent(string eventType) : base(eventType)
 		{
 			Lang = "no-lang";
@@ -100,13 +104,13 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			string content,
 			string userId,
 			string context,
-			string? aggreateId
+			string? aggregateId
 		) : base(
 			eventType,
 			lang,
 			content,
 			userId,
-			aggreateId
+			aggregateId ?? "no!"
 		)
 		{
 			Context = context;
@@ -187,14 +191,14 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			string content,
 			string userId,
 			string context,
-			string aggreateId
+			string aggregateId
 		) : base(
 			LocaleItemEventTypes.LocaleItemUpdated,
 			lang,
 			content,
 			userId,
 			context,
-			aggreateId
+			aggregateId
 		)
 		{
 		}

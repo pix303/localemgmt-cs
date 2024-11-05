@@ -15,12 +15,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+var dbType = builder.Configuration["Store:DBType"];
+if (dbType is null)
+{
+    throw new Exception("no db info");
+}
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(dbType);
 builder.Services.AddLogging();
 builder.Services.AddMassTransit(configuration =>
 {
@@ -28,8 +34,6 @@ builder.Services.AddMassTransit(configuration =>
     configuration.UsingInMemory((context, cfg) =>
     {
         cfg.ConfigureEndpoints(context);
-        cfg.ConcurrentMessageLimit = 15;
-        cfg.PrefetchCount = 15;
     });
 });
 

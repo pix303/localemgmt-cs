@@ -1,0 +1,38 @@
+networks:
+  db-net:
+    driver: bridge
+
+services:
+  postgresdb:
+    container_name: postgres_container
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: me
+      POSTGRES_PASSWORD: me
+      POSTGRES_DB: appdb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - psqldata:/var/lib/postgresql/data/pgdata
+    networks:
+      - db-net
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: me@me.it
+      PGADMIN_DEFAULT_PASSWORD: me
+    ports:
+      - 5433:80
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+#      - ./backup:/var/lib/pgadmin
+    networks:
+      - db-net
+
+volumes:
+  psqldata:
+  pgadmindata:

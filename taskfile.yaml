@@ -12,8 +12,40 @@ tasks:
    cmds:
    - clear
    - "dotnet run --project Localemgmt.Api"
- req:
+ reqa:
    cmds:
    - clear
    - ./Requests/LocaleItem/additem.sh
+ requ:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/updateItem.sh
+ reqs:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/additem.sh
+   - ./Requests/LocaleItem/additem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
+   - ./Requests/LocaleItem/updateItem.sh
    - ./Requests/LocaleItem/updateItem.sh

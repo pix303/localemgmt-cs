@@ -16,6 +16,12 @@ public class StoreEvent
 	public DateTime CreatedAt { get; protected set; }
 	[JsonPropertyName("eventType")]
 	public string EventType { get; protected set; } = "NO-TYPE";
+	[JsonPropertyName("data")]
+	public string? Data { get; set; } = null;
+
+	public StoreEvent()
+	{
+	}
 
 	public StoreEvent(string eventType)
 	{
@@ -52,6 +58,7 @@ public class StoreEvent
 
 public interface IEventStore : IHostedService
 {
+	Task InitStore();
 	Task<ErrorOr<StoreEvent>> Append<T>(T @event) where T : StoreEvent;
 	Task<ErrorOr<T>> Retrive<T>(string aggregateId, DateTime cratedAt) where T : StoreEvent;
 	Task<ErrorOr<List<T>>> RetriveByAggregate<T>(string aggregateId) where T : StoreEvent;

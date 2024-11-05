@@ -52,4 +52,10 @@ public class InMemoryEventStore : IEventStore
 	{
 		await Task.CompletedTask;
 	}
+
+	public Task InitStore()
+	{
+		_eventList = new();
+		return Task.CompletedTask;
+	}
 }
