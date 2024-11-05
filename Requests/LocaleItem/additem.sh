@@ -6,7 +6,7 @@ json_data=$(
     "lang": "it",
     "content": "ciao amore",
     "context": "app",
-    "userId": "0"
+    "userId": "123"
 }
 EOF
 )
