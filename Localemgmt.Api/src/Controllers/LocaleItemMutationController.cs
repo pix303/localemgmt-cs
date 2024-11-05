@@ -35,7 +35,7 @@ public class LocaleItemMutationController : ControllerBase
 	[Route("add")]
 	public async Task<IActionResult> Add(LocaleItemCreationRequest request)
 	{
-		_logger.LogInformation("Adding locale item by request {}", request);
+		// _logger.LogInformation("Adding locale item by request {}", request);
 
 		// event validation
 		var validationError = Validate<LocaleItemCreationRequest>(new AddLocaleItemRequestValidator(), request);
@@ -46,8 +46,10 @@ public class LocaleItemMutationController : ControllerBase
 		}
 
 		// event persistence
-		var e = request.Adapt<LocaleItemCreationEvent>();
-		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
+		// TODO: mapster dont work correctly: aggregateId missing...constructor chain seems correct
+		// var e = request.Adapt<LocaleItemCreationEvent>();
+		var e = new LocaleItemCreationEvent(request.Lang, request.Content, request.UserId, request.Context);
+		var result = await _store.Append<LocaleItemCreationEvent>(e);
 
 		if (result.IsError)
 		{
@@ -83,7 +85,7 @@ public class LocaleItemMutationController : ControllerBase
 
 		// event persistence
 		var e = request.Adapt<LocaleItemUpdateEvent>();
-		var result = await _store.Append<BaseLocalePersistenceEvent>(e);
+		var result = await _store.Append<LocaleItemUpdateEvent>(e);
 		if (result.IsError)
 		{
 			return Problem(result.Errors.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error");
