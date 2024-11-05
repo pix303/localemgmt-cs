@@ -44,9 +44,17 @@ public class ProjectionConsumer : IConsumer<Batch<ProjectionMessage>>
 
 	public async Task Consume(ConsumeContext<Batch<ProjectionMessage>> context)
 	{
+		await Task.CompletedTask;
+		HashSet<string> aggregateIds = new();
 		foreach (var msg in context.Message)
 		{
-			var aggregateId = msg.Message.AggregateId;
+			aggregateIds.Add(msg.Message.AggregateId);
+		}
+
+		_logger.LogInformation($"msg {context.Message.Count()} - set {aggregateIds.Count()}");
+
+		foreach (var aggregateId in aggregateIds)
+		{
 			var result = await _store.RetriveByAggregate<BaseLocalePersistenceEvent>(aggregateId);
 
 			if (result.IsError)
