@@ -64,7 +64,7 @@ public class LocaleItemMutationController : ControllerBase
 
 		if (_bus is not null)
 		{
-			var msg = new ProjectionMessage(aggregateId);
+			var msg = new LocaleItemProjectionMessage(aggregateId);
 			await _bus.Publish(msg);
 		}
 
@@ -97,7 +97,7 @@ public class LocaleItemMutationController : ControllerBase
 			return Problem("aggregate id incoherence", null, StatusCodes.Status500InternalServerError, "Internal server error");
 		}
 
-		var msg = new ProjectionMessage(aggregateId);
+		var msg = new LocaleItemProjectionMessage(aggregateId);
 		if (_bus is not null)
 		{
 			await _bus.Publish(msg);
