@@ -20,6 +20,10 @@ tasks:
    cmds:
    - clear
    - ./Requests/LocaleItem/updateItem.sh
+ get:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/getitems.sh
  reqs:
    cmds:
    - clear

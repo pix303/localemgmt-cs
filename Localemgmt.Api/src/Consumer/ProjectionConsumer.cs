@@ -3,6 +3,7 @@ using Localemgmt.Domain.LocaleItems.Events;
 using Localemgmt.Domain.LocaleItems.Projections;
 using MassTransit;
 using Dapper;
+using Localemgmt.Contracts.LocaleItem;
 
 namespace Localemgmt.Api.Consumer;
 
@@ -17,15 +18,6 @@ public record LocaleItemUpdatedMessage
 	string Type
 );
 
-public record LocaleItemListItem
-(
-	string AggregateId,
-	string Lang,
-	string Context,
-	string Content,
-	DateTime UpdatedAt,
-	string UpdatedBy
-);
 
 public class LocaleItemProjectionConsumerDefinition : ConsumerDefinition<LocaleItemProjectionConsumer>
 {
@@ -119,12 +111,12 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 
 				var listItem = new LocaleItemListItem
 				(
-					AggregateId: localeItem.AggregateId,
-					Lang: localeItem.Lang,
-					Context: localeItem.Context,
-					Content: localeItem.Content,
-					UpdatedAt: localeItem.UpdatedAt ?? localeItem.CreatedAt ?? DateTime.UtcNow,
-					UpdatedBy: localeItem.UpdatedBy ?? localeItem.CreatedBy
+					localeItem.AggregateId,
+					localeItem.Lang,
+					localeItem.Context,
+					localeItem.Content,
+					localeItem.UpdatedAt.ToString() ?? localeItem.CreatedAt.ToString() ?? DateTime.UtcNow.ToString(),
+					localeItem.UpdatedBy ?? localeItem.CreatedBy
 				);
 
 

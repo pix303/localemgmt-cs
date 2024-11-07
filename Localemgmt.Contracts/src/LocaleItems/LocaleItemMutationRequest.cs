@@ -37,3 +37,15 @@ public record LocaleItemUpdateRequest
 	[Required]
 	string AggregateId
 );
+
+public record LocaleItemListRequest
+(
+	string? Lang,
+	string? Context,
+	string? Content
+);
+
+public record LocaleItemDetailRequest
+(
+	string AggregateId
+);
