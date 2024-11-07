@@ -12,10 +12,17 @@ public class NpgsqlDBConnectionFactory : IDBConnectionFactory
 {
 	private readonly string _connectionString;
 	private readonly string _tableName;
-	public NpgsqlDBConnectionFactory(string connectionString, string tableName)
+	public NpgsqlDBConnectionFactory(StoreSettings settings)
 	{
-		_connectionString = connectionString;
-		_tableName = tableName;
+		_tableName = settings.TableName;
+		if (settings.Connection is not null)
+		{
+			_connectionString = settings.Connection;
+		}
+		else
+		{
+			throw new Exception("missing postgresql connection string");
+		}
 	}
 
 	public async Task<IDbConnection> CreateConnectionAsync(CancellationToken token = default)

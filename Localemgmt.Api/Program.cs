@@ -15,23 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-var dbType = builder.Configuration["Store:DBType"];
-if (dbType is null)
-{
-    throw new Exception("no db info");
-}
-
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(dbType);
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddLogging();
 builder.Services.AddMassTransit(configuration =>
 {
     configuration.SetKebabCaseEndpointNameFormatter();
-    configuration.AddConsumer<ProjectionConsumer, ProjectionConsumerDefinition>();
+    configuration.AddConsumer<LocaleItemProjectionConsumer, LocaleItemProjectionConsumerDefinition>();
     // configuration.UsingInMemory((context, cfg) =>
     // {
     //     cfg.ConfigureEndpoints(context);

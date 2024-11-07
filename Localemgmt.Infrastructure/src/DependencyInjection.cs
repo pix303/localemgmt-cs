@@ -7,17 +7,23 @@ using Microsoft.Extensions.Hosting;
 
 namespace Localemgmt.Infrastructure;
 
+
+
 public static class DependencyInjection
 {
 
 	const string StoreTableName = "Store:TableName";
 	const string StoreConnection = "Store:Connection";
 
-	public static IServiceCollection AddInfrastructure(this IServiceCollection services, string dbType)
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, ConfigurationManager configurationManager)
 	{
+
+		StoreSettings storeSettings = new();
+		configurationManager.GetRequiredSection("Store").Bind(storeSettings);
+
 		services.AddSingleton<IUsersRepository, UsersRepository>();
 
-		if (dbType == "Dynamo")
+		if (storeSettings.DBType == "Dynamo")
 		{
 			// config as singleton hosted service for async init
 			services.AddHostedService<IEventStore>(serviceProvider =>
@@ -26,7 +32,7 @@ public static class DependencyInjection
 				var tablename = config.GetSection(StoreTableName).Value;
 				// can be null if using aws credentials
 				var localhost = config.GetSection(StoreConnection).Value;
-				return new DynamoDBEventStore(tablename ?? "no-table-name", localhost);
+				return new DynamoDBEventStore(storeSettings);
 			});
 
 			// register as service for controller and projection consumers
@@ -37,25 +43,13 @@ public static class DependencyInjection
 							);
 		}
 
-		if (dbType == "Postgres")
+		if (storeSettings.DBType == "Postgres")
 		{
 			// config as singleton hosted service for async init
 			services.AddHostedService<IEventStore>(serviceProvider =>
 			{
-				var config = serviceProvider.GetRequiredService<IConfiguration>();
-
-				var tablename = config.GetSection(StoreTableName).Value;
-				if (tablename is null)
-				{
-					throw new Exception("no tablename string");
-				}
-
-				var connectionString = config.GetSection(StoreConnection).Value;
-				if (connectionString is null)
-				{
-					throw new Exception("no connection string");
-				}
-				var store = new PostgresEventStore(connectionString, tablename);
+				IDBConnectionFactory dbConnector = new NpgsqlDBConnectionFactory(storeSettings); ;
+				var store = new PostgresEventStore(dbConnector, storeSettings.TableName);
 				return store;
 			});
 
@@ -66,6 +60,12 @@ public static class DependencyInjection
 							  .First()
 							);
 		}
+
+		services.AddScoped<IDBConnectionFactory>(serviceProvider =>
+		{
+			IDBConnectionFactory dbConnector = new NpgsqlDBConnectionFactory(storeSettings);
+			return dbConnector;
+		});
 
 		return services;
 	}

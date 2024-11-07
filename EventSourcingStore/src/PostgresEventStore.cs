@@ -1,12 +1,12 @@
 using ErrorOr;
 using Dapper;
 
+
 namespace EventSourcingStore;
 
 public class PostgresEventStore : IEventStore
 {
-	private readonly string _dbConnectionString;
-	private NpgsqlDBConnectionFactory _dbConnector;
+	private readonly IDBConnectionFactory _dbConnector;
 	private readonly string _tableName;
 
 	public string GetTableName()
@@ -14,15 +14,15 @@ public class PostgresEventStore : IEventStore
 		return _tableName;
 	}
 
-	public PostgresEventStore(string connectionString, string tableName)
+	public PostgresEventStore(IDBConnectionFactory connection, string tableName)
 	{
-		_dbConnectionString = connectionString;
+		_dbConnector = connection;
 		_tableName = tableName;
-		_dbConnector = new NpgsqlDBConnectionFactory(_dbConnectionString, _tableName);
 	}
 
 	public async Task InitStore()
 	{
+		// TODO: spostare in altra lib init tabelle di projection
 		using (var c = await _dbConnector.CreateConnectionAsync())
 		{
 			var sqlStatement = $"""
@@ -33,8 +33,28 @@ public class PostgresEventStore : IEventStore
 			    "createdAt" character varying(64) NOT NULL,
 			    "userId" character varying(128)  NOT NULL,
 			    "eventType" character varying(64) NOT NULL,
-			    "data" text 
-			)
+			    "data" text,
+			    CONSTRAINT "localemgmt-store_pkey" PRIMARY KEY (id),
+			    CONSTRAINT "localemgmt-store_ukey" UNIQUE ("aggregateId", "createdAt")
+			);
+
+			CREATE TABLE IF NOT EXISTS public."localeitem-detail"
+			(
+			    "aggregateId" character varying(64) NOT NULL,
+			    "data" text,
+			    CONSTRAINT "localeitem-detail_pkey" PRIMARY KEY ("aggregateId")
+			);
+
+			CREATE TABLE IF NOT EXISTS public."localeitem-list"
+			(
+			    "aggregateId" character varying(64) NOT NULL,
+			    "lang" character varying(8) NOT NULL,
+			    "context" character varying(64) NOT NULL,
+			    "content" text NOT NULL,
+			    "updatedAt" character varying(64) NOT NULL,
+			    "updatedBy" character varying(64) NOT NULL,
+			    CONSTRAINT "localeitem-list_ukey" UNIQUE ("aggregateId","lang","context")
+			);
 			""";
 
 			await c.ExecuteAsync(sqlStatement);

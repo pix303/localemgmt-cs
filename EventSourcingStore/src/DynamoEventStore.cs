@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using ErrorOr;
+using Microsoft.Extensions.Options;
 
 namespace EventSourcingStore
 {
@@ -34,31 +35,31 @@ namespace EventSourcingStore
 	{
 		private readonly AmazonDynamoDBClient _client;
 		private readonly DynamoDBContext _context;
-		private readonly string _tableName;
+		private readonly StoreSettings _settings = null!;
 
 		public string GetTableName()
 		{
-			return _tableName;
+			return _settings.TableName;
 		}
 
 
-		public DynamoDBEventStore(string tableName, string? localhost)
+		public DynamoDBEventStore(StoreSettings settings)
 		{
+			_settings = settings;
 			var opts = new AmazonDynamoDBConfig();
-			if (localhost is not null)
+			if (_settings.Connection is not null)
 			{
-				opts.ServiceURL = localhost;
+				opts.ServiceURL = _settings.Connection;
 			}
 			_client = new AmazonDynamoDBClient(opts);
 			_context = new DynamoDBContext(_client);
-			_tableName = tableName;
 		}
 
 		public async Task InitStore()
 		{
-			DynamoEventStoreMigration m = new(_client, _tableName);
+			DynamoEventStoreMigration m = new(_client, _settings.TableName);
 			var result = await m.CreateTableAsync();
-			Console.WriteLine($"db check creation for table {_tableName}: {result}");
+			Console.WriteLine($"db check creation for table {_settings.TableName}: {result}");
 		}
 
 		public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
@@ -74,7 +75,7 @@ namespace EventSourcingStore
 
 			var appendEventRequest = new PutItemRequest
 			{
-				TableName = _tableName,
+				TableName = _settings.TableName,
 				Item = eventAsAttributes
 			};
 
@@ -92,7 +93,7 @@ namespace EventSourcingStore
 		{
 			var getEventRequest = new GetItemRequest
 			{
-				TableName = _tableName,
+				TableName = _settings.TableName,
 				Key = new Dictionary<string, AttributeValue>()
 				{
 					{
@@ -136,7 +137,7 @@ namespace EventSourcingStore
 		{
 			var q = new QueryRequest
 			{
-				TableName = _tableName,
+				TableName = _settings.TableName,
 				KeyConditionExpression = "aggregateId = :aId",
 				ExpressionAttributeValues = new Dictionary<string, AttributeValue>()
 				{
