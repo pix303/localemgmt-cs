@@ -28,10 +28,6 @@ public static class DependencyInjection
 			// config as singleton hosted service for async init
 			services.AddHostedService<IEventStore>(serviceProvider =>
 			{
-				var config = serviceProvider.GetRequiredService<IConfiguration>();
-				var tablename = config.GetSection(StoreTableName).Value;
-				// can be null if using aws credentials
-				var localhost = config.GetSection(StoreConnection).Value;
 				return new DynamoDBEventStore(storeSettings);
 			});
 

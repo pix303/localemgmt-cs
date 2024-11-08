@@ -3,6 +3,18 @@ networks:
     driver: bridge
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5028:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgresdb
+      - rabbitmq
+
   postgresdb:
     container_name: postgres_container
     image: postgres
@@ -32,7 +44,6 @@ services:
 #      - ./backup:/var/lib/pgadmin
     networks:
       - db-net
-
       
   rabbitmq:
     image: rabbitmq:3.9-management
@@ -45,7 +56,6 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-
 
 volumes:
   psqldata:
