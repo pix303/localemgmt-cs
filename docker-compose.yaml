@@ -1,5 +1,5 @@
 networks:
-  db-net:
+  localemgmt-net:
     driver: bridge
 
 services:
@@ -8,12 +8,15 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5028:80"
+      - "5028:5028"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://*:5028
     depends_on:
       - postgresdb
       - rabbitmq
+    networks:
+    - localemgmt-net
 
   postgresdb:
     container_name: postgres_container
@@ -29,7 +32,7 @@ services:
     volumes:
       - psqldata:/var/lib/postgresql/data/pgdata
     networks:
-      - db-net
+    - localemgmt-net
 
   pgadmin:
     container_name: pgadmin_container
@@ -41,9 +44,8 @@ services:
       - 5433:80
     volumes:
       - pgadmindata:/var/lib/pgadmin
-#      - ./backup:/var/lib/pgadmin
     networks:
-      - db-net
+    - localemgmt-net
       
   rabbitmq:
     image: rabbitmq:3.9-management
@@ -56,6 +58,8 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+    - localemgmt-net
 
 volumes:
   psqldata:

@@ -16,7 +16,7 @@ WORKDIR "Localemgmt.Api"
 RUN dotnet build -c Release -o /app/build
 RUN dotnet publish -c Release -o /app/publish
 
-
+EXPOSE 5028
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
