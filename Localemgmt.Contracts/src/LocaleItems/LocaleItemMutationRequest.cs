@@ -38,14 +38,10 @@ public record LocaleItemUpdateRequest
 	string AggregateId
 );
 
-public record LocaleItemListRequest
-(
-	string? Lang,
-	string? Context,
-	string? Content
-);
+public class LocaleItemSearchRequest
+{
+	public string? lang { get; set; }
+	public string? context { get; set; }
+	public string? content { get; set; }
+};
 
-public record LocaleItemDetailRequest
-(
-	string AggregateId
-);

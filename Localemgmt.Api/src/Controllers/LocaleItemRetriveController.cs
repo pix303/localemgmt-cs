@@ -25,19 +25,18 @@ public class LocaleItemRetriveController : ControllerBase
 
 
 	[HttpGet]
-	[Route("search")]
-	public async Task<IActionResult> GetList([FromQuery] LocaleItemListRequest request)
+	[Route("context/{context}")]
+	public async Task<IActionResult> GetContext([FromRoute] string context, [FromQuery] string? lang)
 	{
-		_logger.LogWarning(request.ToString());
 		using (var c = await _dbConnection.CreateConnectionAsync())
 		{
-			_logger.LogWarning(request.ToString());
-			var result = await c.QueryAsync<LocaleItemListItem>($"""
-				SELECT * FROM "localeitem-list" 
-				WHERE (@Lang IS NULL OR "localeitem-list"."lang" = @Lang)  
-				AND (@Context IS NULL OR "localeitem-list"."context" = @Context)  
-				AND (@Content IS NULL OR "localeitem-list"."content" LIKE @Content)
-			""", request);
+			var result = await c.QueryAsync<LocaleItemListItem>($""" 
+			SELECT * FROM "localeitem-list" 
+			WHERE "localeitem-list"."context" = @context 
+			AND (@lang IS NULL OR lang = @lang)
+			""",
+			new { context, lang }
+			);
 
 			if (result.Count() == 0)
 			{
@@ -50,16 +49,15 @@ public class LocaleItemRetriveController : ControllerBase
 
 
 	[HttpGet]
-	[Route("detail")]
-	public async Task<IActionResult> GetDetail([FromQuery] LocaleItemDetailRequest request)
+	[Route("detail/{aggregateId}")]
+	public async Task<IActionResult> GetDetail(string aggregateId)
 	{
 		using (var c = await _dbConnection.CreateConnectionAsync())
 		{
-			_logger.LogWarning(request.ToString());
 			var result = await c.QuerySingleAsync<LocaleItemDetail>($"""
 				SELECT * FROM "localeitem-detail" 
 				WHERE "localeitem-detail"."aggregateId" = @AggregateId;
-			""", request);
+			""", new { aggregateId });
 
 			if (result is null)
 			{
@@ -75,4 +73,70 @@ public class LocaleItemRetriveController : ControllerBase
 		}
 	}
 
+	[HttpGet]
+	[Route("search")]
+	public async Task<IActionResult> Search([FromQuery] LocaleItemSearchRequest request)
+	{
+		Console.WriteLine(request);
+		request.content = $"%{request.content}%";
+
+		Console.WriteLine(request.content);
+		using (var c = await _dbConnection.CreateConnectionAsync())
+		{
+			try
+			{
+				var result = await c.QueryAsync<LocaleItemListItem>($"""
+					SELECT * FROM "localeitem-list" 
+					WHERE (@lang IS NULL OR "localeitem-list"."lang" = @lang)
+					AND (@context IS NULL OR "localeitem-list"."context" = @context)
+					AND (@content IS NULL OR "localeitem-list"."content" LIKE @content)
+				""",
+				 request);
+
+				if (result.Count() == 0)
+				{
+					return Problem(statusCode: StatusCodes.Status404NotFound);
+				}
+
+				return Ok(result.ToList());
+
+			}
+			catch (Exception ex)
+			{
+				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ex.ToString());
+			}
+		}
+	}
+
+
+	[HttpGet]
+	[Route("match")]
+	public async Task<IActionResult> Match([FromQuery] LocaleItemSearchRequest request)
+	{
+		using (var c = await _dbConnection.CreateConnectionAsync())
+		{
+			try
+			{
+				var result = await c.QueryFirstAsync<string>($"""
+					SELECT "aggregateId" FROM "localeitem-list" 
+					WHERE (@lang IS NULL OR "localeitem-list"."lang" = @lang)
+					AND (@context IS NULL OR "localeitem-list"."context" = @context)
+					AND (@content IS NULL OR "localeitem-list"."content" = @content)
+				""",
+				 request);
+
+				if (result is null)
+				{
+					return Problem(statusCode: StatusCodes.Status404NotFound);
+				}
+
+				return await this.GetDetail(result);
+
+			}
+			catch (Exception ex)
+			{
+				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ex.ToString());
+			}
+		}
+	}
 }

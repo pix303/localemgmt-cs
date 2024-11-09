@@ -1,26 +1,11 @@
 #!/bin/bash
 
-curl -X GET http://localhost:5028/localeitem/search \
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
-
-curl -X GET http://localhost:5028/localeitem/search?content=ciao&lang=it&context=app\
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
-
-curl -X GET http://localhost:5028/localeitem/search?lang=it&context=app\
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
-
-curl -X GET http://localhost:5028/localeitem/search?content=ciao\
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
-
-curl -X GET http://localhost:5028/localeitem/search?content=xxxxx\
-  --header "Content-Type: application/json" \
-  --data "$json_data"  | jq .
-
-# curl -X GET http://localhost:5028/localeitem/detail?aggregateId=596a106d-f8cb-4dd3-b062-a7b40bfc5f92 \
-#   --header "Content-Type: application/json" \
-#   --data "$json_data"  | jq .
-
+curl -X GET -H "Content-Type: application/json" "http://localhost:5028/localeitem/match?lang=it&context=app&content=ciao%20amore" | jq .
+curl -X GET -H "Content-Type: application/json" "http://localhost:5028/localeitem/search?lang=it&context=app&content=que" | jq .
+curl -X GET -H "Content-Type: application/json" "http://localhost:5028/localeitem/search?lang=it&content=que" | jq .
+# curl -X GET "http://localhost:5028/localeitem/searchx?lang=it&context=app&content=ciao"
+# curl -X GET http://localhost:5028/localeitem/searchx?context=app&lang=it&content=ciao | jq .
+# curl -X GET http://localhost:5028/localeitem/searchx?content=ciao&lang=it&context=app | jq .
+# curl -X GET http://localhost:5028/localeitem/search?lang=it&context=app&content=ciao | jq .
+# curl -X GET http://localhost:5028/localeitem/search?context=app&lang=it&content=ciao | jq .
+# curl -X GET http://localhost:5028/localeitem/search?content=ciao&lang=it&context=app | jq .

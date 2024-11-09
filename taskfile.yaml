@@ -24,6 +24,14 @@ tasks:
    cmds:
    - clear
    - ./Requests/LocaleItem/getitems.sh
+ context:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/getcontext.sh
+ aggr:
+   cmds:
+   - clear
+   - ./Requests/LocaleItem/getaggregate.sh
  reqs:
    cmds:
    - clear
