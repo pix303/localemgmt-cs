@@ -1,6 +1,5 @@
 using Localemgmt.Domain.LocaleItems.Projections;
 using Localemgmt.Domain.LocaleItems.Events;
-using EventSourcingStore;
 
 
 namespace Localemgmt.Domain.Test;
@@ -8,74 +7,32 @@ namespace Localemgmt.Domain.Test;
 public class LocaleItemsUnitTest
 {
 	[Fact]
-	public void TranslationItemsProjections_should_update()
-	{
-		var lastContent = "this is a test and it's edited 2 times";
-		var user = "user123";
-		var lang = "en";
-		TranslationItemCreationEvent creationEvent = new(lang, "this is a test", user);
-		TranslationItemUpdateEvent updateEvent = new(lang, "this is an edited test", user);
-		TranslationItemUpdateEvent updateEvent2 = new(lang, lastContent, user);
-
-		IList<StoreEvent> events = [
-			creationEvent,
-			updateEvent,
-			updateEvent2
-		];
-
-
-		TranslationItem item = new TranslationItem();
-		item.Reduce(events);
-
-
-		Assert.Equal(item.Content, lastContent);
-		Assert.Equal(item.UpdatedBy, user);
-		Assert.NotNull(item.Id);
-		Assert.True(item.UpdatedAt > item.CreatedAt);
-		Assert.True(item.UpdatedBy == item.CreatedBy);
-	}
-
-	[Fact]
 	public void LocaleItemCreation()
 	{
-		var lastContent = "this is a test and it's edited 2 times";
+		var lastContent = "this is a test and in english";
 		var user = "user123";
 		var lang = "en";
+		var context = "Default";
 
-		LocaleItemCreationEvent creationEvent = new(lang, "this is a test", user, "Default");
-		LocaleItemUpdateEvent updateEvent = new(lang, "this is an edited test", user, "Default", creationEvent.AggregateId);
-		LocaleItemUpdateEvent updateEvent2 = new(lang, lastContent, user, "Default", creationEvent.AggregateId);
-
-		TranslationItemCreationEvent tiCreationEvent = new("it", "questo è un test", user);
-		TranslationItemUpdateEvent tiUpdateEvent = new("it", "quest è un test modificato", user);
-		TranslationItemUpdateEvent tiUpdateEvent2 = new("it", lastContent, user);
-
-		TranslationItemCreationEvent tiCreationEventB = new("fr", "c'est un test", user);
-		TranslationItemUpdateEvent tiUpdateEventB = new("fr", "c'est un test modifié", user);
-		TranslationItemUpdateEvent tiUpdateEvent2B = new("fr", lastContent, user);
+		LocaleItemCreationEvent creationEvent = new(lang, lastContent, user, context);
+		TranslationItemUpdatedEvent updateEvent = new(lang, lastContent + " come on", user, creationEvent.AggregateId);
+		TranslationItemUpdatedEvent updateEvent2 = new(lang, lastContent + " come on on on on ", user, creationEvent.AggregateId);
+		TranslationItemUpdatedEvent updateEvent3 = new("it", "questo un test in italiano", user, creationEvent.AggregateId);
 
 		IList<BaseLocalePersistenceEvent> events = [
 			creationEvent,
 			updateEvent,
 			updateEvent2,
-			tiCreationEvent,
-			tiUpdateEvent,
-			tiUpdateEvent2,
-			tiCreationEventB,
-			tiUpdateEventB,
-			tiUpdateEvent2B
+			updateEvent3,
 		];
 
-		LocaleItem item = new LocaleItem();
+		LocaleItemAggregate item = new LocaleItemAggregate();
 		item.Reduce(events);
 
-		Assert.Equal(item.Content, lastContent);
-		Assert.Equal(item.UpdatedBy, user);
-		Assert.NotNull(item.Id);
-		Assert.True(item.UpdatedAt > item.CreatedAt);
-		Assert.True(item.UpdatedBy == item.CreatedBy);
+		Assert.Equal(item.Context, context);
+		Assert.Equal(item.LangReference, lang);
 		Assert.True(item.Translations.Count == 2);
-		Assert.True(item.Translations[0].Lang == "it");
-		Assert.True(item.Translations[1].Lang == "fr");
+		Assert.True(item.Translations[0].Lang == "en");
+		Assert.True(item.Translations[1].Lang == "it");
 	}
 }

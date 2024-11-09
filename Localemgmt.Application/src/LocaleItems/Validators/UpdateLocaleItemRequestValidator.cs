@@ -9,8 +9,7 @@ public class UpdateLocaleItemRequestValidator : AbstractValidator<LocaleItemUpda
 	{
 		RuleFor(r => r.AggregateId)
 		.NotEmpty()
-		.Length(default(Guid).ToString().Length)
-		.WithMessage("AggregateId is required");
+		.WithMessage("AggregateId is required eh");
 
 		RuleFor(r => r.UserId)
 		.NotEmpty()

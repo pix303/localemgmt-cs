@@ -22,7 +22,9 @@ public class PostgresEventStore : IEventStore
 
 	public async Task InitStore()
 	{
+		// ----------------------------------------------------------------------x
 		// TODO: spostare in altra lib init tabelle di projection
+		// ----------------------------------------------------------------------x
 		using (var c = await _dbConnector.CreateConnectionAsync())
 		{
 			var sqlStatement = $"""
@@ -65,6 +67,7 @@ public class PostgresEventStore : IEventStore
 	public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 	{
 		var data = JsonParser.Serialize(evt);
+		Console.WriteLine(evt);
 		// TODO: handle error
 		evt.Data = data.Value;
 		var s = $"""INSERT INTO "{_tableName}" ("id", "aggregateId", "createdAt", "userId", "eventType","data") VALUES (@Id,@AggregateId,@CreatedAt,@UserId,@EventType,@Data)""";

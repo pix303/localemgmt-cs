@@ -26,17 +26,14 @@ namespace Localemgmt.Api.Config
 					s.Context
 				));
 
-			TypeAdapterConfig<LocaleItemUpdateRequest, LocaleItemUpdateEvent>
+			TypeAdapterConfig<LocaleItemUpdateRequest, TranslationItemUpdatedEvent>
 			.NewConfig()
 			.ConstructUsing(s =>
-				new LocaleItemUpdateEvent(
-				LocaleItemEventTypes.LocaleItemUpdated,
+				new TranslationItemUpdatedEvent(
 					s.Lang,
 					s.Content,
 					s.UserId,
-					s.Context,
-					// must be defined because of api validation
-					s.AggregateId!
+					s.AggregateId
 				));
 
 			TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());

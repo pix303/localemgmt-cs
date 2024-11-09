@@ -64,7 +64,7 @@ public class LocaleItemRetriveController : ControllerBase
 				return Problem(statusCode: StatusCodes.Status404NotFound);
 			}
 
-			var finalResult = JsonParser.Deserialize<LocaleItem>(result.Data);
+			var finalResult = JsonParser.Deserialize<LocaleItemAggregate>(result.Data);
 			if (finalResult.IsError)
 			{
 				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: finalResult.FirstError.ToString());

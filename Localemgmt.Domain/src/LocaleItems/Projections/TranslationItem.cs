@@ -6,47 +6,31 @@ namespace Localemgmt.Domain.LocaleItems.Projections;
 
 public class TranslationItem
 {
-	public Guid Id { get; set; }
 	public string Content { get; set; } = null!;
 	public string Lang { get; set; } = null!;
+
 	public DateTime? CreatedAt { get; set; } = null!;
 	public string CreatedBy { get; set; } = null!;
 	public DateTime? UpdatedAt { get; set; } = null!;
 	public string UpdatedBy { get; set; } = null!;
 
 
-	protected void Apply(TranslationItemCreationEvent @event)
-	{
-		Id = Guid.NewGuid();
-		CreatedAt = DateTime.UtcNow;
-		CreatedBy = @event.UserId;
-
-		Content = @event.Content;
-		Lang = @event.Lang;
-	}
-
-	protected void Apply(TranslationItemUpdateEvent @event)
+	protected void Apply(TranslationItemUpdatedEvent evt)
 	{
 		UpdatedAt = DateTime.UtcNow;
-		UpdatedBy = @event.UserId;
+		UpdatedBy = evt.UserId;
 
-		Content = @event.Content;
-		Lang = @event.Lang;
+		Content = evt.Content;
+		Lang = evt.Lang;
 	}
 
-	public void Apply(StoreEvent @event)
+	public void Apply(StoreEvent evt)
 	{
-		switch (@event)
+		switch (evt)
 		{
-			case TranslationItemCreationEvent translationCreated:
-				Apply(translationCreated);
-				break;
-
-
-			case TranslationItemUpdateEvent translationUpdated:
+			case TranslationItemUpdatedEvent translationUpdated:
 				Apply(translationUpdated);
 				break;
-
 		}
 	}
 

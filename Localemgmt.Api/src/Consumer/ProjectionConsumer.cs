@@ -3,7 +3,6 @@ using Localemgmt.Domain.LocaleItems.Events;
 using Localemgmt.Domain.LocaleItems.Projections;
 using MassTransit;
 using Dapper;
-using Localemgmt.Contracts.LocaleItem;
 
 namespace Localemgmt.Api.Consumer;
 
@@ -78,7 +77,7 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 				_logger.LogInformation($"{evtList.Count()} events processed for {aggregateId}");
 
 				// build aggregate
-				var localeItem = new LocaleItem();
+				var localeItem = new LocaleItemAggregate();
 				localeItem.Reduce(evtList);
 				_logger.LogInformation(localeItem.ToString());
 
@@ -109,16 +108,12 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 					  AND "localeitem-list"."context" = @Context;
 					""";
 
-				var listItem = new LocaleItemListItem
-				(
-					localeItem.AggregateId,
-					localeItem.Lang,
-					localeItem.Context,
-					localeItem.Content,
-					localeItem.UpdatedAt.ToString() ?? localeItem.CreatedAt.ToString() ?? DateTime.UtcNow.ToString(),
-					localeItem.UpdatedBy ?? localeItem.CreatedBy
-				);
-
+				List<LocaleItemListItem> listItems = new();
+				foreach (var t in localeItem.Translations)
+				{
+					var li = new LocaleItemListItem(localeItem, t.Lang);
+					listItems.Add(li);
+				}
 
 				using (var c = await _dbConnection.CreateConnectionAsync())
 				{
@@ -127,7 +122,10 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 						try
 						{
 							c.Execute(sqlDetail, new { Data = data.Value, AggregateId = aggregateId });
-							c.Execute(sqlList, listItem);
+							foreach (var li in listItems)
+							{
+								c.Execute(sqlList, li);
+							}
 							transaction.Commit();
 
 							_logger.LogInformation("locale item updated");

@@ -76,6 +76,7 @@ public class LocaleItemMutationController : ControllerBase
 	[Route("update")]
 	public async Task<IActionResult> Update(LocaleItemUpdateRequest request)
 	{
+
 		// event validation
 		var validationError = Validate<LocaleItemUpdateRequest>(new UpdateLocaleItemRequestValidator(), request);
 		if (validationError is not null)
@@ -84,8 +85,8 @@ public class LocaleItemMutationController : ControllerBase
 		}
 
 		// event persistence
-		var e = request.Adapt<LocaleItemUpdateEvent>();
-		var result = await _store.Append<LocaleItemUpdateEvent>(e);
+		var e = request.Adapt<TranslationItemUpdatedEvent>();
+		var result = await _store.Append<TranslationItemUpdatedEvent>(e);
 		if (result.IsError)
 		{
 			return Problem(result.Errors.First().Description, null, StatusCodes.Status500InternalServerError, "Internal server error");

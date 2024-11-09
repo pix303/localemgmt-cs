@@ -7,7 +7,7 @@ json_data=$(
     "content": "questo altro inserimento in update di prova",
     "context": "app",
     "userId": "123",
-    "aggregateId": "11781d9c-b1e6-4d61-b0a4-8f8412f7b6da"
+    "aggregateId": "9d4a4d94-5608-42cd-a7df-3491f05a6eb"
 }
 EOF
 )
@@ -25,7 +25,7 @@ json_data=$(
     "content": "questo veramente ultimo inserimento in update di prova!!!!!!",
     "context": "appero",
     "userId": "1230",
-    "aggregateId": "11781d9c-b1e6-4d61-b0a4-8f8412f7b6da"
+    "aggregateId": "9d4a4d94-5608-42cd-a7df-3491f05a6eb"
 }
 EOF
 )
