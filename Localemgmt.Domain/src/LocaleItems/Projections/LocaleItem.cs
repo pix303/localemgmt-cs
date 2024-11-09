@@ -32,8 +32,18 @@ public class LocaleItemAggregate : IAggregate<BaseLocalePersistenceEvent>
 
 	private void Apply(TranslationItemUpdatedEvent evt)
 	{
+		bool toAdd = false;
 		TranslationItem? t = GetTranslationByLang(evt.Lang);
-		t?.Apply(evt);
+		if (t is null)
+		{
+			t = new();
+			toAdd = true;
+		}
+		t.Apply(evt);
+		if (toAdd)
+		{
+			Translations.Add(t);
+		}
 	}
 
 
@@ -64,7 +74,7 @@ public class LocaleItemAggregate : IAggregate<BaseLocalePersistenceEvent>
 	public override string ToString()
 	{
 		var t = this.GetTranslationByLang(this.LangReference);
-		return $"aggId: {this.AggregateId} context: {this.Context} - lang: {t?.Lang} - content: {t?.Content}";
+		return $"aggId: {this.AggregateId} context: {this.Context} - lang: {t?.Lang} - content: {t?.Content} - num trad: {this.Translations.Count}";
 	}
 }
 

@@ -77,7 +77,6 @@ public class LocaleItemRetriveController : ControllerBase
 	[Route("search")]
 	public async Task<IActionResult> Search([FromQuery] LocaleItemSearchRequest request)
 	{
-		Console.WriteLine(request);
 		request.content = $"%{request.content}%";
 
 		Console.WriteLine(request.content);

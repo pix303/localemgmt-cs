@@ -63,6 +63,8 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 
 		_logger.LogInformation($"message recived: {context.Message.Count()} - num of aggregateIds to process: {aggregateIds.Count()}");
 
+		var sender = await context.GetSendEndpoint(new Uri("queue:projection"));
+
 		foreach (var aggregateId in aggregateIds)
 		{
 			var result = await _store.RetriveByAggregate<BaseLocalePersistenceEvent>(aggregateId);
@@ -70,27 +72,27 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 			if (result.IsError)
 			{
 				_logger.LogError("Error on doing projection: {}", result.Errors.First().Description);
+				await sender.Send(new LocaleItemUpdatedMessage(aggregateId, "error - 404"));
+				return;
 			}
-			else
+
+			var evtList = result.Value;
+			_logger.LogInformation($"{evtList.Count()} events processed for {aggregateId}");
+
+			// build aggregate
+			var localeItem = new LocaleItemAggregate();
+			localeItem.Reduce(evtList);
+			_logger.LogInformation(localeItem.ToString());
+
+			//create projection
+			var data = JsonParser.Serialize(localeItem);
+			if (data.IsError)
 			{
-				var evtList = result.Value;
-				_logger.LogInformation($"{evtList.Count()} events processed for {aggregateId}");
+				await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "error - json"));
+				return;
+			}
 
-				// build aggregate
-				var localeItem = new LocaleItemAggregate();
-				localeItem.Reduce(evtList);
-				_logger.LogInformation(localeItem.ToString());
-
-				//create projection
-
-				var sender = await context.GetSendEndpoint(new Uri("queue:projection"));
-				var data = JsonParser.Serialize(localeItem);
-				if (data.IsError)
-				{
-					await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "updated"));
-				}
-
-				var sqlDetail = $"""
+			var sqlDetail = $"""
 					INSERT INTO "localeitem-detail" ("aggregateId", "data")
 					VALUES (@AggregateId,@Data)
 					ON CONFLICT ("aggregateId")
@@ -98,7 +100,7 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 					WHERE "localeitem-detail"."aggregateId" = @AggregateId;
 					""";
 
-				var sqlList = $"""
+			var sqlList = $"""
 					INSERT INTO "localeitem-list" ("aggregateId", "lang", "context", "content", "updatedAt", "updatedBy")
 					VALUES (@AggregateId,@Lang,@Context,@Content,@UpdatedAt,@UpdatedBy)
 					ON CONFLICT ("aggregateId","lang","context")
@@ -108,39 +110,39 @@ public class LocaleItemProjectionConsumer : IConsumer<Batch<LocaleItemProjection
 					  AND "localeitem-list"."context" = @Context;
 					""";
 
-				List<LocaleItemListItem> listItems = new();
-				foreach (var t in localeItem.Translations)
-				{
-					var li = new LocaleItemListItem(localeItem, t.Lang);
-					listItems.Add(li);
-				}
+			List<LocaleItemListItem> listItems = new();
+			foreach (var t in localeItem.Translations)
+			{
+				var li = new LocaleItemListItem(localeItem, t.Lang);
+				listItems.Add(li);
+			}
 
-				using (var c = await _dbConnection.CreateConnectionAsync())
+			using (var c = await _dbConnection.CreateConnectionAsync())
+			{
+				using (var transaction = c.BeginTransaction())
 				{
-					using (var transaction = c.BeginTransaction())
+					try
 					{
-						try
+						c.Execute(sqlDetail, new { Data = data.Value, AggregateId = aggregateId });
+						foreach (var li in listItems)
 						{
-							c.Execute(sqlDetail, new { Data = data.Value, AggregateId = aggregateId });
-							foreach (var li in listItems)
-							{
-								c.Execute(sqlList, li);
-							}
-							transaction.Commit();
+							c.Execute(sqlList, li);
+						}
+						transaction.Commit();
 
-							_logger.LogInformation("locale item updated");
-							await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "updated"));
-						}
-						catch (Exception ex)
-						{
-							transaction.Rollback();
-							_logger.LogError(ex.ToString());
-							await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "error"));
-						}
+						_logger.LogInformation("locale item updated");
+						await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "updated"));
+					}
+					catch (Exception ex)
+					{
+						transaction.Rollback();
+						_logger.LogError(ex.ToString());
+						await sender.Send(new LocaleItemUpdatedMessage(localeItem.AggregateId, "error - persistence"));
 					}
 				}
-
 			}
+
+
 		}
 	}
 }

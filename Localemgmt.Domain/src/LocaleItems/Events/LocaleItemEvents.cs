@@ -157,8 +157,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			string content,
 			string userId,
 			string aggregateId,
-			DateTime createdAt,
-			string context
+			DateTime createdAt
 		) : base(
 			id,
 			eventType,
@@ -169,6 +168,11 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			createdAt
 		)
 		{
+		}
+
+		override public string ToString()
+		{
+			return $"{this.EventType} - {this.Lang} = {this.Content}";
 		}
 	};
 

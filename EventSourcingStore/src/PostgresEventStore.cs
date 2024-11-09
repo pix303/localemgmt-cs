@@ -67,7 +67,6 @@ public class PostgresEventStore : IEventStore
 	public async Task<ErrorOr<StoreEvent>> Append<T>(T evt) where T : StoreEvent
 	{
 		var data = JsonParser.Serialize(evt);
-		Console.WriteLine(evt);
 		// TODO: handle error
 		evt.Data = data.Value;
 		var s = $"""INSERT INTO "{_tableName}" ("id", "aggregateId", "createdAt", "userId", "eventType","data") VALUES (@Id,@AggregateId,@CreatedAt,@UserId,@EventType,@Data)""";
@@ -108,7 +107,7 @@ public class PostgresEventStore : IEventStore
 				}
 				else
 				{
-					ErrorOr.Error.Failure(description: evt.Errors.First().ToString());
+					return ErrorOr.Error.Failure(description: evt.Errors.First().ToString());
 				}
 			}
 
@@ -126,15 +125,13 @@ public class PostgresEventStore : IEventStore
 	{
 		if (rowData is null)
 		{
-			// TODO better describe error
-			return ErrorOr.Error.NotFound();
+			return ErrorOr.Error.NotFound(description: "no data for rebuild this event");
 		}
 
 		var result = JsonParser.Deserialize<T>(rowData);
 		if (result.IsError)
 		{
-			// TODO better describe error
-			return ErrorOr.Error.Failure();
+			return ErrorOr.Error.Failure(description: result.Errors.FirstOrDefault().Description);
 		}
 
 		return result.Value;
