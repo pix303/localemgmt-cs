@@ -18,6 +18,7 @@ namespace Localemgmt.Api.Config
 
 			TypeAdapterConfig<LocaleItemCreationRequest, LocaleItemCreationEvent>
 			.NewConfig()
+			.IgnoreNonMapped(true)
 			.ConstructUsing(s =>
 				new LocaleItemCreationEvent(
 					s.Lang,

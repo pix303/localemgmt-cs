@@ -46,9 +46,7 @@ public class LocaleItemMutationController : ControllerBase
 		}
 
 		// event persistence
-		// TODO: mapster dont work correctly: aggregateId missing...constructor chain seems correct
-		// var e = request.Adapt<LocaleItemCreationEvent>();
-		var e = new LocaleItemCreationEvent(request.Lang, request.Content, request.UserId, request.Context);
+		var e = request.Adapt<LocaleItemCreationEvent>();
 		var result = await _store.Append<LocaleItemCreationEvent>(e);
 
 		if (result.IsError)

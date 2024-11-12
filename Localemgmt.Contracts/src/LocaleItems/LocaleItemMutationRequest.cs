@@ -22,13 +22,13 @@ public record LocaleItemCreationRequest
 
 public record LocaleItemUpdateRequest
 (
-	[Required]
+	[Required, MinLength(2), MaxLength(6)]
 	string Lang,
 
 	[Required]
 	string Content,
 
-	[Required]
+	[Required, MinLength(3), MaxLength(64) ]
 	string Context,
 
 	[Required]

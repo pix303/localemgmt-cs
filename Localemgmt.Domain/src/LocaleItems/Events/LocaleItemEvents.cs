@@ -100,8 +100,7 @@ namespace Localemgmt.Domain.LocaleItems.Events
 			LocaleItemEventTypes.LocaleItemAdded,
 			lang,
 			content,
-			userId,
-			Guid.NewGuid().ToString()
+			userId
 		)
 		{
 			Context = context;

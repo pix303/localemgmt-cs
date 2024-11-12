@@ -79,7 +79,6 @@ public class LocaleItemRetriveController : ControllerBase
 	{
 		request.content = $"%{request.content}%";
 
-		Console.WriteLine(request.content);
 		using (var c = await _dbConnection.CreateConnectionAsync())
 		{
 			try
