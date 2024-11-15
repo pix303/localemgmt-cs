@@ -7,6 +7,7 @@ using Localemgmt.Application.LocaleItem.Validators;
 using FluentValidation;
 using MassTransit;
 using Localemgmt.Api.Consumer;
+using Localemgmt.Infrastructure.Services;
 
 namespace Localemgmt.Api.Controllers;
 
@@ -17,17 +18,19 @@ public class LocaleItemMutationController : ControllerBase
 	IEventStore _store;
 	ILogger<LocaleItemMutationController> _logger;
 	IPublishEndpoint? _bus;
-
+	IRetriveService _retriveService;
 
 	public LocaleItemMutationController(
 		IEventStore store,
 		ILogger<LocaleItemMutationController> logger,
+		IRetriveService service,
 		IPublishEndpoint? bus
 	)
 	{
 		_store = store;
 		_logger = logger;
 		_bus = bus;
+		_retriveService = service;
 	}
 
 
@@ -43,6 +46,17 @@ public class LocaleItemMutationController : ControllerBase
 		{
 			_logger.LogError("Error on validation {}", validationError);
 			return validationError;
+		}
+
+		var mreq = request.Adapt<LocaleItemSearchRequest>();
+		var mresult = await _retriveService.Match(mreq);
+		if (mresult.IsError == false)
+		{
+			return Problem($"Already exists locale item with lang: {request.Lang}, context: {request.Context}, content: {request.Content}");
+		}
+		if (mresult.FirstError.Code.Contains(ErrorOr.ErrorType.Failure.ToString()))
+		{
+			return Problem($"Error on check existence of a same locale item with lang: {request.Lang}, context: {request.Context}, content: {request.Content}");
 		}
 
 		// event persistence

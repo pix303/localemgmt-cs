@@ -43,5 +43,17 @@ public class LocaleItemSearchRequest
 	public string? lang { get; set; }
 	public string? context { get; set; }
 	public string? content { get; set; }
+
+	public LocaleItemSearchRequest
+	(
+		string? lang,
+		string? context,
+		string? content
+	)
+	{
+		this.lang = lang;
+		this.context = context;
+		this.content = content;
+	}
 };
 

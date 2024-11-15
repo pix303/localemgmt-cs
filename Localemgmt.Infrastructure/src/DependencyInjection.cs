@@ -4,6 +4,7 @@ using Localemgmt.Infrastructure.Repositories.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Localemgmt.Infrastructure.Services;
 
 namespace Localemgmt.Infrastructure;
 
@@ -45,9 +46,9 @@ public static class DependencyInjection
 			services.AddHostedService<IEventStore>(serviceProvider =>
 			{
 				IDBConnectionFactory dbConnector = new NpgsqlDBConnectionFactory(storeSettings); ;
-				var store = new PostgresEventStore(dbConnector, storeSettings.TableName);
-				return store;
+				return new PostgresEventStore(dbConnector, storeSettings.TableName);
 			});
+
 
 			// register as service for controller and projection consumers
 			services.AddTransient<IEventStore>(serviceProvider =>
@@ -61,6 +62,13 @@ public static class DependencyInjection
 		{
 			IDBConnectionFactory dbConnector = new NpgsqlDBConnectionFactory(storeSettings);
 			return dbConnector;
+		});
+
+		// projection db
+		services.AddTransient<IRetriveService>(serviceProvider =>
+		{
+			IDBConnectionFactory dbConnector = new NpgsqlDBConnectionFactory(storeSettings); ;
+			return new PostgresProjectionService(dbConnector);
 		});
 
 		return services;

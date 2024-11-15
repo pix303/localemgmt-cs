@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Localemgmt.Contracts.LocaleItem;
-using EventSourcingStore;
-using Dapper;
-using Localemgmt.Domain.LocaleItems.Projections;
+using Localemgmt.Infrastructure.Services;
 
 namespace Localemgmt.Api.Controllers;
 
@@ -11,16 +9,16 @@ namespace Localemgmt.Api.Controllers;
 public class LocaleItemRetriveController : ControllerBase
 {
 	ILogger<LocaleItemRetriveController> _logger;
-	IDBConnectionFactory _dbConnection;
+	IRetriveService _service;
 
 
 	public LocaleItemRetriveController(
 		ILogger<LocaleItemRetriveController> logger,
-		IDBConnectionFactory connection
+		IRetriveService service
 	)
 	{
 		_logger = logger;
-		_dbConnection = connection;
+		_service = service;
 	}
 
 
@@ -28,23 +26,15 @@ public class LocaleItemRetriveController : ControllerBase
 	[Route("context/{context}")]
 	public async Task<IActionResult> GetContext([FromRoute] string context, [FromQuery] string? lang)
 	{
-		using (var c = await _dbConnection.CreateConnectionAsync())
-		{
-			var result = await c.QueryAsync<LocaleItemListItem>($""" 
-			SELECT * FROM "localeitem-list" 
-			WHERE "localeitem-list"."context" = @context 
-			AND (@lang IS NULL OR lang = @lang)
-			""",
-			new { context, lang }
-			);
-
-			if (result.Count() == 0)
+		var result = await _service.GetContext(context, lang);
+		return result.MatchFirst(
+			value => Ok(value),
+			err =>
 			{
-				return Problem(statusCode: StatusCodes.Status404NotFound);
+				var statusCode = err.Code == ErrorOr.ErrorType.NotFound.ToString() ? StatusCodes.Status404NotFound : StatusCodes.Status500InternalServerError;
+				return Problem(statusCode: statusCode, detail: err.Description);
 			}
-
-			return Ok(result);
-		}
+		);
 	}
 
 
@@ -52,58 +42,31 @@ public class LocaleItemRetriveController : ControllerBase
 	[Route("detail/{aggregateId}")]
 	public async Task<IActionResult> GetDetail(string aggregateId)
 	{
-		using (var c = await _dbConnection.CreateConnectionAsync())
-		{
-			var result = await c.QuerySingleAsync<LocaleItemDetail>($"""
-				SELECT * FROM "localeitem-detail" 
-				WHERE "localeitem-detail"."aggregateId" = @AggregateId;
-			""", new { aggregateId });
-
-			if (result is null)
+		var result = await _service.GetDetail(aggregateId);
+		return result.MatchFirst(
+			value => Ok(value),
+			err =>
 			{
-				return Problem(statusCode: StatusCodes.Status404NotFound);
+				var statusCode = err.Code == ErrorOr.ErrorType.NotFound.ToString() ? StatusCodes.Status404NotFound : StatusCodes.Status500InternalServerError;
+				return Problem(statusCode: statusCode, detail: err.Description);
 			}
-
-			var finalResult = JsonParser.Deserialize<LocaleItemAggregate>(result.Data);
-			if (finalResult.IsError)
-			{
-				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: finalResult.FirstError.ToString());
-			}
-			return Ok(finalResult.Value);
-		}
+		);
 	}
+
 
 	[HttpGet]
 	[Route("search")]
 	public async Task<IActionResult> Search([FromQuery] LocaleItemSearchRequest request)
 	{
-		request.content = $"%{request.content}%";
-
-		using (var c = await _dbConnection.CreateConnectionAsync())
-		{
-			try
+		var result = await _service.Search(request);
+		return result.MatchFirst(
+			value => Ok(value),
+			err =>
 			{
-				var result = await c.QueryAsync<LocaleItemListItem>($"""
-					SELECT * FROM "localeitem-list" 
-					WHERE (@lang IS NULL OR "localeitem-list"."lang" = @lang)
-					AND (@context IS NULL OR "localeitem-list"."context" = @context)
-					AND (@content IS NULL OR "localeitem-list"."content" LIKE @content)
-				""",
-				 request);
-
-				if (result.Count() == 0)
-				{
-					return Problem(statusCode: StatusCodes.Status404NotFound);
-				}
-
-				return Ok(result.ToList());
-
+				var statusCode = err.Code == ErrorOr.ErrorType.NotFound.ToString() ? StatusCodes.Status404NotFound : StatusCodes.Status500InternalServerError;
+				return Problem(statusCode: statusCode, detail: err.Description);
 			}
-			catch (Exception ex)
-			{
-				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ex.ToString());
-			}
-		}
+		);
 	}
 
 
@@ -111,30 +74,14 @@ public class LocaleItemRetriveController : ControllerBase
 	[Route("match")]
 	public async Task<IActionResult> Match([FromQuery] LocaleItemSearchRequest request)
 	{
-		using (var c = await _dbConnection.CreateConnectionAsync())
-		{
-			try
+		var result = await _service.Match(request);
+		return result.MatchFirst(
+			value => Ok(value),
+			err =>
 			{
-				var result = await c.QueryFirstAsync<string>($"""
-					SELECT "aggregateId" FROM "localeitem-list" 
-					WHERE (@lang IS NULL OR "localeitem-list"."lang" = @lang)
-					AND (@context IS NULL OR "localeitem-list"."context" = @context)
-					AND (@content IS NULL OR "localeitem-list"."content" = @content)
-				""",
-				 request);
-
-				if (result is null)
-				{
-					return Problem(statusCode: StatusCodes.Status404NotFound);
-				}
-
-				return await this.GetDetail(result);
-
+				var statusCode = err.Code.Contains(ErrorOr.ErrorType.NotFound.ToString()) ? StatusCodes.Status404NotFound : StatusCodes.Status500InternalServerError;
+				return Problem(statusCode: statusCode, detail: err.Description);
 			}
-			catch (Exception ex)
-			{
-				return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: ex.ToString());
-			}
-		}
+		);
 	}
 }

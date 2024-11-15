@@ -37,6 +37,15 @@ namespace Localemgmt.Api.Config
 					s.AggregateId
 				));
 
+			TypeAdapterConfig<LocaleItemCreationRequest, LocaleItemSearchRequest>
+		.NewConfig()
+		.ConstructUsing(s =>
+			new(
+				s.Lang,
+				s.Context,
+				s.Content
+			));
+
 			TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 		}
 	}
