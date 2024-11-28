@@ -1,0 +1,36 @@
+<div class="flex flex-row">
+  <label class="input input-bordered flex items-center gap-2">
+    <input type="text" class="grow" placeholder="Search" [formControl]="filters.controls.content" />
+    <search-icon />
+  </label>
+</div>
+
+
+<div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Context</th>
+        <th>Lang</th>
+        <th>Content</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for(item of localeitems(); track $index){
+      <tr class='hover'>
+        <td>{{item.contextId}}</td>
+        <td>{{item.lang}}</td>
+        <td>{{item.content}}</td>
+        <td>qualcosa</td>
+      </tr>
+      }@empty{
+      <tr>
+        <td colspan="100">
+          <p class="text-center">no items</p>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
