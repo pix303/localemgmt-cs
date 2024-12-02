@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, } from '@angular/forms';
-import { LocaleStore } from '../../store/locale';
 import { SearchIconComponent } from '../icons/search/search.component';
+import { environment } from '../../environments/environment';
+import { LocaleStore } from '@stores/locale';
 
 @Component({
   selector: 'app-list-locale-items',
@@ -17,6 +18,8 @@ export class ListLocaleItemsComponent {
     lang: new FormControl(""),
     content: new FormControl(""),
   });
+
+  test = environment.auth0Domain;
 
   constructor() {
     this.filters.valueChanges

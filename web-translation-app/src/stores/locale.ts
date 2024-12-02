@@ -1,14 +1,12 @@
 import { computed, effect, inject } from "@angular/core";
-import { LocaleItem } from "../domain/localeitem";
-import { User } from "../domain/user";
-import { getState, patchState, signalStore, withComputed, withHooks, withMethods, withState } from "@ngrx/signals";
-import { LocaleItemService } from "../service/localeitem.service";
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from "@ngrx/signals";
+import { LocaleItemService } from "@services/localeitem.service";
+import { LocaleItem } from "@domain/localeitem";
 
 type FormValue<T> = T | null | undefined;
 
 export type LocaleState = {
   _loadedItems: LocaleItem[],
-  user: User | undefined,
 }
 
 export type LocaleStateMetadata = {
@@ -22,9 +20,8 @@ export type LocaleStateMetadata = {
   warning: string | undefined,
 }
 
-const initialState: LocaleState = {
+const initialLocaleState: LocaleState = {
   _loadedItems: [],
-  user: undefined,
 }
 
 const initialMetadata: LocaleStateMetadata = {
@@ -36,7 +33,7 @@ const initialMetadata: LocaleStateMetadata = {
 
 export const LocaleStore = signalStore(
   { providedIn: 'root' },
-  withState(initialState),
+  withState(initialLocaleState),
   withState(initialMetadata),
 
   withComputed(({ _loadedItems, _filters }) => ({
@@ -71,7 +68,7 @@ export const LocaleStore = signalStore(
     onInit(store) {
       store.loadItems();
       effect(() => {
-        const currentState = getState(store);
+        // const currentState = getState(store);
         //console.debug("[pix-store-state]", currentState);
       })
     },

@@ -3,9 +3,12 @@ import { z } from 'zod';
 
 
 export const UserSchema = z.object({
-  id: z.string().email(),
+  loggedin: z.boolean(),
+  email: z.string().email(),
+  name: z.string(),
+  picture: z.string(),
   contexts: z.array(ContextSchema),
-  referenceLang: z.string(),
+  referenceLang: z.string().optional(),
 });
 
 export type User = z.infer<typeof UserSchema>;

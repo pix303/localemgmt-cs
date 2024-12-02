@@ -225,3 +225,8 @@ AppPackages/
 # End of core ignore list, below put you custom 'per project' settings (patterns or path)
 #####
 .envrc
+web-translation-app/.env
+web-translation-app/src/environments/.env
+web-translation-app/src/environments/environment.prod.ts
+web-translation-app/src/environments/environment.stub.ts
+web-translation-app/src/environments/environment.ts

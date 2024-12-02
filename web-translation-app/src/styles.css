@@ -2,3 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.inner-content{
+  @apply p-8;
+}

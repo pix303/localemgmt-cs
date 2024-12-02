@@ -1,0 +1,23 @@
+<section class="inner-content">
+  @if(user.loggedin() === true){
+  <div>
+    <article>
+      <div class="avatar">
+        <div class="w-24 rounded">
+          <img src={{user.picture()}} />
+        </div>
+      </div>
+      <h2>{{user.name()}}</h2>
+      <p>{{user.email()}}</p>
+      <p>{{user.contexts()}}</p>
+    </article>
+  </div>
+  }@else{
+  <article>
+    <div role="alert" class="alert alert-warning">
+      <warning-icon />
+      <span>To access the app’s features, please log in to your account.</span>
+    </div>
+  </article>
+  }
+</section>

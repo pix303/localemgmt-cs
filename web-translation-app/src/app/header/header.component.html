@@ -6,7 +6,11 @@
     <ul class="menu menu-horizontal px-1">
       <li><a routerLink="/list">Contesti</a></li>
       <li><a>Traduzioni</a></li>
+      @if(userStore.user.loggedin() === true){
       <li><a routerLink="/user-profile">Utente</a></li>
+      }@else{
+      <li><button (click)="login()">Login</button></li>
+      }
     </ul>
   </div>
 </div>

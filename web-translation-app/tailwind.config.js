@@ -11,7 +11,7 @@ content: [
     require('daisyui')
   ],
   daisyui:{
-    themes:["dracula"]
+    themes:["dim"]
   }
 
 }
